@@ -6,16 +6,17 @@ filetype plugin indent on
 
 colorscheme wombat256
 
-map <silent> <LocalLeader>nt :NERDTreeToggle<CR>
-map <silent> <LocalLeader>nr :NERDTree<CR>
-map <silent> <LocalLeader>ch :HighlightColumnAdd<CR>
-map <silent> <LocalLeader>co :HighlightColumnOne<CR>
-map <silent> <LocalLeader>cc :HighlightColumnOff<CR>
-map <silent> <LocalLeader>a :CtrlP<CR>
+map <silent> <Leader>nt :NERDTreeToggle<CR>
+map <silent> <Leader>nr :NERDTree<CR>
+map <silent> <Leader>ch :HighlightColumnAdd<CR>
+map <silent> <Leader>co :HighlightColumnOne<CR>
+map <silent> <Leader>cc :HighlightColumnOff<CR>
+map <silent> <Leader>a :CtrlP<CR>
 
 let g:ctrlp_user_command='ag %s -l --nocolor -g ""'
 let g:ctrlp_use_caching=0
 let g:ackprg = 'ag --vimgrep --smart-case'
+let g:stylish_haskell_command='./stylish-haskell'
 cnoreabbrev Ag Ack
 
 set number

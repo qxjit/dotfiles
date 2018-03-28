@@ -16,7 +16,6 @@ map <silent> <Leader>a :CtrlP<CR>
 let g:ctrlp_user_command='ag %s -l --nocolor -g ""'
 let g:ctrlp_use_caching=0
 let g:ackprg = 'ag --vimgrep --smart-case'
-let g:stylish_haskell_command='./stylish-haskell'
 cnoreabbrev Ag Ack
 
 set number
@@ -41,3 +40,8 @@ autocmd ColorScheme * highlight ExtraWhitespace ctermbg=88 guibg=red
 autocmd BufRead,InsertEnter,InsertLeave * 2match LineLengthError /\%76v.*/
 highlight LineLengthError ctermbg=58 guibg=gold4
 autocmd ColorScheme * highlight LineLengthError ctermbg=58 guibg=gold4
+
+augroup fmt
+  autocmd!
+  autocmd BufWritePre *.hs undojoin | Neoformat
+augroup END

@@ -25,3 +25,6 @@
 [submodule "vim/bundle/vim-stylish-haskell"]
 	path = vim/bundle/vim-stylish-haskell
 	url = https://github.com/nbouscal/vim-stylish-haskell.git
+[submodule "vim/bundle/neoformat"]
+	path = vim/bundle/neoformat
+	url = https://github.com/sbdchd/neoformat.git

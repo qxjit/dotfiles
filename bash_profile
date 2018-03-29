@@ -10,7 +10,7 @@ function rgb () {
   local b=$3
   local text=$4
 
-  printf "\x1b[38;2;${r};${g};${b}m${text}\x1b[0m"
+  printf "\[\x1b[38;2;${r};${g};${b}m\]${text}\[\x1b[0m\]"
 }
 
 if [[ "$COLORTERM" == "truecolor" ]]; then

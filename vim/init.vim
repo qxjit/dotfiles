@@ -1,10 +1,10 @@
-set t_Co=256
+set termguicolors
 
 execute pathogen#infect()
 syntax on
 filetype plugin indent on
 
-colorscheme wombat256
+colorscheme jellybeans
 
 map <silent> <Leader>nt :NERDTreeToggle<CR>
 map <silent> <Leader>nr :NERDTree<CR>

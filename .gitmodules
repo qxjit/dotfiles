@@ -28,3 +28,6 @@
 [submodule "vim/bundle/neoformat"]
 	path = vim/bundle/neoformat
 	url = https://github.com/sbdchd/neoformat.git
+[submodule "vim/bundle/setcolors"]
+	path = vim/bundle/setcolors
+	url = https://github.com/qxjit/setcolors.vim.git

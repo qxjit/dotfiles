@@ -17,7 +17,13 @@ map <silent> <Leader>a :CtrlP<CR>
 
 let g:ctrlp_user_command='ag %s -l --nocolor -g ""'
 let g:ctrlp_use_caching=0
-let g:ackprg = 'ag --vimgrep --smart-case'
+
+if executable('rg')
+  let g:ackprg='rg --smart-case --no-heading --vimgrep'
+elseif executable('ag')
+  let g:ackprg='ag --smart-case --vimgrep'
+endif
+
 cnoreabbrev Ag Ack
 
 set number

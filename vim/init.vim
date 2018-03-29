@@ -5,6 +5,8 @@ syntax on
 filetype plugin indent on
 
 colorscheme jellybeans
+hi StatusLine guibg=#404040 guifg=#b0cc55
+hi StatusLineNC guifg=#909090
 
 map <silent> <Leader>nt :NERDTreeToggle<CR>
 map <silent> <Leader>nr :NERDTree<CR>

@@ -15,12 +15,13 @@ map <silent> <Leader>co :HighlightColumnOne<CR>
 map <silent> <Leader>cc :HighlightColumnOff<CR>
 map <silent> <Leader>a :CtrlP<CR>
 
-let g:ctrlp_user_command='ag %s -l --nocolor -g ""'
 let g:ctrlp_use_caching=0
 
 if executable('rg')
+  let g:ctrlp_user_command='rg %s --files --color never'
   let g:ackprg='rg --smart-case --no-heading --vimgrep'
 elseif executable('ag')
+  let g:ctrlp_user_command='ag %s -l --nocolor -g ""'
   let g:ackprg='ag --smart-case --vimgrep'
 endif
 

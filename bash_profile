@@ -1,7 +1,7 @@
 # vi: ft=sh
 
 set -o vi
-export PATH=$HOME/bin:$PATH
+export PATH=$HOME/.local/bin:$HOME/bin:$PATH
 export EDITOR=nvim
 
 function rgb () {
@@ -21,3 +21,5 @@ if [[ "$COLORTERM" == "truecolor" ]]; then
   rgb 144 144 144 "\\$ ";
   )
 fi
+
+export PATH="$HOME/.cargo/bin:$PATH"

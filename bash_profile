@@ -5,6 +5,9 @@ export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
 export EDITOR=nvim
 
+# Make sure ls on OSX knows it can do colors
+export CLICOLOR=1
+
 function rgb () {
   local r=$1
   local g=$2

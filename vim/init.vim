@@ -40,8 +40,9 @@ set nowrap
 set incsearch
 set hlsearch
 
-silent !mkdir -p /tmp/vim
-set dir=/tmp/vim//
+set nobackup
+set undofile
+set undodir=~/.config/nvim/undodir
 
 " Highlight trailing whitespace
 autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$/

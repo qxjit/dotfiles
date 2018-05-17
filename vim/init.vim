@@ -20,6 +20,7 @@ map <silent> <Leader>cc :HighlightColumnOff<CR>
 map <silent> <Leader>a :CtrlP<CR>
 map <silent> <Leader>n :cn<CR>
 map <silent> <Leader>p :cp<CR>
+map <silent> <Leader><Tab> :buf #<CR>
 
 let g:ctrlp_use_caching=0
 

@@ -8,12 +8,18 @@ colorscheme jellybeans
 hi StatusLine guibg=#404040 guifg=#b0cc55
 hi StatusLineNC guifg=#909090
 
-map <silent> <Leader>nt :NERDTreeToggle<CR>
-map <silent> <Leader>nr :NERDTree<CR>
+let mapleader=" "
+
+map <Leader>s :Ack!<Space>
+map <Leader>w :w<CR>
+
+map <silent> <Leader>t :NERDTreeToggle<CR>
 map <silent> <Leader>ch :HighlightColumnAdd<CR>
 map <silent> <Leader>co :HighlightColumnOne<CR>
 map <silent> <Leader>cc :HighlightColumnOff<CR>
 map <silent> <Leader>a :CtrlP<CR>
+map <silent> <Leader>n :cn<CR>
+map <silent> <Leader>p :cp<CR>
 
 let g:ctrlp_use_caching=0
 
@@ -24,8 +30,6 @@ elseif executable('ag')
   let g:ctrlp_user_command='ag %s -l --nocolor -g ""'
   let g:ackprg='ag --smart-case --vimgrep'
 endif
-
-cnoreabbrev Ag Ack
 
 set number
 set shiftwidth=2

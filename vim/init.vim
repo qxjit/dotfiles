@@ -18,6 +18,7 @@ function! s:SearchReplace(search,replace)
   "   * The y/n/q/a etc options apply on the current hit *only*
   "     * Use Ctrl-C Abort
   "   * Saving after each file to avoid building up a bunch of unsaved buffers
+  "   * Files are not syntax highlighted (inside the cdo)
   execute ":Ack! --case-sensitive ".a:search
   execute ":cdo s/".a:search."/".a:replace."/c | :w | update"
 endfunction

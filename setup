@@ -25,5 +25,8 @@ link "$HOME/dotfiles/tmux.conf" "$HOME/.tmux.conf"
 link "$HOME/dotfiles/bash_profile" "$HOME/.bash_profile"
 link "$HOME/dotfiles/bash_profile" "$HOME/.bashrc"
 
+git submodule init
+git submodule update
+
 brew install tmux nvim ripgrep
 

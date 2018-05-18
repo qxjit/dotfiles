@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+
+set -e
+
+if [ ! -d "$HOME/dotfiles" ]; then
+  echo "Expected dotfiles repo to be cloned at $HOME/dotfiles. Aborting"
+  exit 1
+fi
+
+link () {
+  SRC=$1
+  DST=$2
+
+  if [ -e "$DST" ]; then
+    echo "$DST already exists, not overwriting. If you want the one from dotfiles, move the old one out of the way and re-run setup"
+  else
+    echo "Linking $SRC -> $DST"
+    ln -s "$SRC" "$DST"
+  fi
+}
+
+mkdir -p "$HOME/.config"
+link "$HOME/dotfiles/vim" "$HOME/.config/nvim"
+link "$HOME/dotfiles/tmux.conf" "$HOME/.tmux.conf"
+link "$HOME/dotfiles/bash_profile" "$HOME/.bash_profile"
+link "$HOME/dotfiles/bash_profile" "$HOME/.bashrc"
+
+brew install tmux nvim ripgrep
+

@@ -10,8 +10,8 @@ hi StatusLineNC guifg=#909090
 
 let mapleader=" "
 
-map <Leader>s :Ack!<Space>
-map <Leader>w :w<CR>
+map <Leader>sa :Ack!<Space>
+map <Leader>sw "zyiw:Ack! z<CR>
 
 map <silent> <Leader>t :NERDTreeToggle<CR>
 map <silent> <Leader>ch :HighlightColumnAdd<CR>
@@ -21,6 +21,7 @@ map <silent> <Leader>a :CtrlP<CR>
 map <silent> <Leader>n :cn<CR>
 map <silent> <Leader>p :cp<CR>
 map <silent> <Leader><Tab> :buf #<CR>
+map <silent> <Leader>w 
 
 let g:ctrlp_use_caching=0
 

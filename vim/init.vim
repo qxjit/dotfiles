@@ -8,9 +8,26 @@ colorscheme jellybeans
 hi StatusLine guibg=#404040 guifg=#b0cc55
 hi StatusLineNC guifg=#909090
 
+function! s:SearchReplace(search,replace)
+  " This assumes that the :Ack! command supports --case-sensitive to
+  " override any default behavior that would make the cdo s/// not
+  " behave as expected. It would be better to abstract this out
+  " in some way that I don't have time to think about right now.
+  "
+  " Using :cdo has the following shortcomings and tradeoffs that are known
+  "   * The y/n/q/a etc options apply on the current hit *only*
+  "     * Use Ctrl-C Abort
+  "   * Saving after each file to avoid building up a bunch of unsaved buffers
+  execute ":Ack! --case-sensitive ".a:search
+  execute ":cdo s/".a:search."/".a:replace."/c | :w | update"
+endfunction
+
+command! -nargs=+ SearchReplace call s:SearchReplace(<f-args>)
+
 let mapleader=" "
 
 map <Leader>sa :Ack!<Space>
+map <Leader>sr :SearchReplace<Space>
 map <Leader>sw "zyiw:Ack! z<CR>
 
 map <silent> <Leader>t :NERDTreeToggle<CR>

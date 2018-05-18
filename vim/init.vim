@@ -72,8 +72,8 @@ autocmd ColorScheme * highlight ExtraWhitespace ctermbg=88 guibg=red
 
 " Highlight too-long lines
 autocmd BufRead,InsertEnter,InsertLeave * 2match LineLengthError /\%76v.*/
-highlight LineLengthError ctermbg=58 guibg=gold4
-autocmd ColorScheme * highlight LineLengthError ctermbg=58 guibg=gold4
+highlight LineLengthError term=underline cterm=underline gui=underline
+autocmd ColorScheme * highlight LineLengthError term=underline cterm=underline gui=underline
 
 augroup fmt
   autocmd!

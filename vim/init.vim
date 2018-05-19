@@ -1,6 +1,29 @@
 set termguicolors
 
-execute pathogen#infect()
+call plug#begin('~/.local/share/nvim/plugged')
+
+Plug 'scrooloose/nerdtree', { 'commit': 'a172d7cfcb4fe9b927dcc24184204fc89d826301' }
+
+Plug 'mileszs/ack.vim', { 'commit': '36e40f9ec91bdbf6f1adf408522a73a6925c3042' }
+
+Plug 'flazz/vim-colorschemes', { 'commit': 'eab315701f4627967fd62582eefc4e37a3745786' }
+
+Plug 'kien/ctrlp.vim', { 'commit': '564176f01d7f3f7f8ab452ff4e1f5314de7b0981' }
+
+Plug 'neovimhaskell/haskell-vim', { 'commit': '430b529224c5f9ae53b148f814b7b1fc82b8b525' }
+
+Plug 'raichoo/purescript-vim', { 'commit': 'bd19dedebc7420565b8aec111e59217da838db59' }
+
+Plug 'fatih/vim-go', { 'commit': '8575d9e3c9e23508f9b7d0c3992cb683b1e47ae6' }
+
+Plug 'ElmCast/elm-vim', { 'commit': 'ae5315396cd0f3958750f10a5f3ad9d34d33f40d' }
+
+Plug 'sbdchd/neoformat', { 'commit': '230e12121b43ba428bd147639a59f0ac5e72b5cc' }
+
+Plug 'qxjit/setcolors.vim', { 'commit': 'da71d38c73815678dafa9c121b1e0a86676a2bc7' }
+
+call plug#end()
+
 syntax on
 filetype plugin indent on
 

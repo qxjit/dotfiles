@@ -30,3 +30,5 @@ git submodule update
 
 brew install tmux nvim ripgrep
 brew tap caskroom/fonts && brew cask install font-source-code-pro
+
+nvim -c ':PlugInstall | :qa'

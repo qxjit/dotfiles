@@ -8,8 +8,6 @@ Plug 'mileszs/ack.vim', { 'commit': '36e40f9' }
 
 Plug 'flazz/vim-colorschemes', { 'commit': 'eab3157' }
 
-Plug 'kien/ctrlp.vim', { 'commit': '564176f' }
-
 Plug 'neovimhaskell/haskell-vim', { 'commit': 'a5302e0' }
 
 Plug 'raichoo/purescript-vim', { 'commit': 'bd19ded' }
@@ -21,6 +19,8 @@ Plug 'ElmCast/elm-vim', { 'commit': 'ae53153' }
 Plug 'sbdchd/neoformat', { 'commit': '4dba93d' }
 
 Plug 'qxjit/setcolors.vim', { 'commit': 'da71d38' }
+
+Plug 'junegunn/fzf', { 'commit': '62f062e', 'do': './install --bin' }
 
 call plug#end()
 
@@ -62,7 +62,7 @@ map <silent> <Leader>t :NERDTreeToggle<CR>
 map <silent> <Leader>ch :HighlightColumnAdd<CR>
 map <silent> <Leader>co :HighlightColumnOne<CR>
 map <silent> <Leader>cc :HighlightColumnOff<CR>
-map <silent> <Leader>a :CtrlP<CR>
+map <silent> <Leader>a :FZF<CR>
 map <silent> <Leader>n :cn<CR>
 map <silent> <Leader>p :cp<CR>
 map <silent> <Leader><Tab> :buf #<CR>

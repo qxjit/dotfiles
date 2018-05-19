@@ -4,30 +4,34 @@ call plug#begin('~/.local/share/nvim/plugged')
 
 Plug 'scrooloose/nerdtree', { 'commit': '6188c5e' }
 
-Plug 'mileszs/ack.vim', { 'commit': '36e40f9ec91bdbf6f1adf408522a73a6925c3042' }
+Plug 'mileszs/ack.vim', { 'commit': '36e40f9' }
 
-Plug 'flazz/vim-colorschemes', { 'commit': 'eab315701f4627967fd62582eefc4e37a3745786' }
+Plug 'flazz/vim-colorschemes', { 'commit': 'eab3157' }
 
-Plug 'kien/ctrlp.vim', { 'commit': '564176f01d7f3f7f8ab452ff4e1f5314de7b0981' }
+Plug 'kien/ctrlp.vim', { 'commit': '564176f' }
 
 Plug 'neovimhaskell/haskell-vim', { 'commit': 'a5302e0' }
 
-Plug 'raichoo/purescript-vim', { 'commit': 'bd19dedebc7420565b8aec111e59217da838db59' }
+Plug 'raichoo/purescript-vim', { 'commit': 'bd19ded' }
 
-Plug 'fatih/vim-go', { 'commit': '8575d9e3c9e23508f9b7d0c3992cb683b1e47ae6' }
+Plug 'fatih/vim-go', { 'commit': '8575d9e' }
 
-Plug 'ElmCast/elm-vim', { 'commit': 'ae5315396cd0f3958750f10a5f3ad9d34d33f40d' }
+Plug 'ElmCast/elm-vim', { 'commit': 'ae53153' }
 
 Plug 'sbdchd/neoformat', { 'commit': '4dba93d' }
 
-Plug 'qxjit/setcolors.vim', { 'commit': 'da71d38c73815678dafa9c121b1e0a86676a2bc7' }
+Plug 'qxjit/setcolors.vim', { 'commit': 'da71d38' }
 
 call plug#end()
 
 syntax on
 filetype plugin indent on
 
-colorscheme jellybeans
+" silent! here suppresses errors about the colorscheme
+" missing so that we can run :PluginInstall the first
+" time without getting an error.
+silent! colorscheme jellybeans
+
 hi StatusLine guibg=#404040 guifg=#b0cc55
 hi StatusLineNC guifg=#909090
 

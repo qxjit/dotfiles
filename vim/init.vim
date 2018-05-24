@@ -8,6 +8,8 @@ Plug 'mileszs/ack.vim', { 'commit': '36e40f9' }
 
 Plug 'flazz/vim-colorschemes', { 'commit': 'eab3157' }
 
+Plug 'kien/ctrlp.vim', { 'commit': '564176f' }
+
 Plug 'neovimhaskell/haskell-vim', { 'commit': 'a5302e0' }
 
 Plug 'raichoo/purescript-vim', { 'commit': 'bd19ded' }
@@ -19,8 +21,6 @@ Plug 'ElmCast/elm-vim', { 'commit': 'ae53153' }
 Plug 'sbdchd/neoformat', { 'commit': '4dba93d' }
 
 Plug 'qxjit/setcolors.vim', { 'commit': 'da71d38' }
-
-Plug 'junegunn/fzf', { 'commit': '62f062e', 'do': './install --bin' }
 
 call plug#end()
 
@@ -60,7 +60,7 @@ noremap <Leader>sr :SearchReplace<Space>
 noremap <Leader>sw "zyiw:Ack! z<CR>
 
 noremap <silent> <Leader>t :NERDTreeToggle<CR>
-noremap <silent> <Leader>a :FZF<CR>
+noremap <silent> <Leader>a :CtrlP<CR>
 
 noremap <silent> <Leader>ch :HighlightColumnAdd<CR>
 noremap <silent> <Leader>co :HighlightColumnOne<CR>
@@ -74,9 +74,13 @@ noremap <silent> <Leader>w <C-w>
 tnoremap <Esc> <C-\><C-n>
 tnoremap <C-o> <Esc>
 
+let g:ctrlp_use_caching=0
+
 if executable('rg')
+  let g:ctrlp_user_command='rg %s --files --color never'
   let g:ackprg='rg --smart-case --no-heading --vimgrep'
 elseif executable('ag')
+  let g:ctrlp_user_command='ag %s -l --nocolor -g ""'
   let g:ackprg='ag --smart-case --vimgrep'
 endif
 

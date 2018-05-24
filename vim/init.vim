@@ -126,3 +126,5 @@ augroup fmt
   autocmd BufWritePre *.hs undojoin | Neoformat
 augroup END
 
+" add fugitive to the statusline
+set statusline=%<%f\ %h%m%r%{fugitive#statusline()}%=%-14.(%l,%c%V%)\ %P

@@ -22,6 +22,8 @@ Plug 'sbdchd/neoformat', { 'commit': '4dba93d' }
 
 Plug 'qxjit/setcolors.vim', { 'commit': 'da71d38' }
 
+Plug 'tpope/vim-fugitive', { 'commit': '614e20b' }
+
 call plug#end()
 
 syntax on
@@ -65,6 +67,11 @@ noremap <silent> <Leader>a :CtrlP<CR>
 noremap <silent> <Leader>ch :HighlightColumnAdd<CR>
 noremap <silent> <Leader>co :HighlightColumnOne<CR>
 noremap <silent> <Leader>cc :HighlightColumnOff<CR>
+
+noremap <silent> <Leader>gs :Gstatus<CR>
+noremap <silent> <Leader>gd :Gdiff<CR>
+noremap <silent> <Leader>gc :Gcommit<CR>
+noremap <silent> <Leader>gb :Gblame<CR>
 
 noremap <silent> <Leader>n :cn<CR>
 noremap <silent> <Leader>p :cp<CR>

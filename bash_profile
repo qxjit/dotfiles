@@ -3,7 +3,13 @@
 set -o vi
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
-export EDITOR=nvim
+
+if [[ "$NVIM_LISTEN_ADDRESS" != "" ]] &&
+   [[ $(type -p nvr) ]]; then
+  export EDITOR="nvr -cc split --remote-wait"
+else
+  export EDITOR=nvim
+fi
 
 # Make sure ls on OSX knows it can do colors
 export CLICOLOR=1

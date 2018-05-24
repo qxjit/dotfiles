@@ -17,7 +17,10 @@ function rgb () {
   printf "\[\x1b[38;2;${r};${g};${b}m\]${text}\[\x1b[0m\]"
 }
 
-if [[ "$COLORTERM" == "truecolor" ]]; then
+# Check for both COLORTERM or TMUX here because TMUX
+# nulls out COLORTERM.
+if [[ "$COLORTERM" == "truecolor" ]] ||
+   [[ "$TMUX" != "" ]]; then
   export PS1=$(
   rgb 144 144 144 "\h ";
   rgb 176 204 85 "\u ";

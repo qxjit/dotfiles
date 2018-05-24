@@ -50,23 +50,29 @@ function! s:SearchReplace(search,replace)
   execute ":cdo s/".a:search."/".a:replace."/c | :w | update"
 endfunction
 
+
 command! -nargs=+ SearchReplace call s:SearchReplace(<f-args>)
 
 let mapleader=" "
 
-map <Leader>sa :Ack!<Space>
-map <Leader>sr :SearchReplace<Space>
-map <Leader>sw "zyiw:Ack! z<CR>
+noremap <Leader>sa :Ack!<Space>
+noremap <Leader>sr :SearchReplace<Space>
+noremap <Leader>sw "zyiw:Ack! z<CR>
 
-map <silent> <Leader>t :NERDTreeToggle<CR>
-map <silent> <Leader>ch :HighlightColumnAdd<CR>
-map <silent> <Leader>co :HighlightColumnOne<CR>
-map <silent> <Leader>cc :HighlightColumnOff<CR>
-map <silent> <Leader>a :FZF<CR>
-map <silent> <Leader>n :cn<CR>
-map <silent> <Leader>p :cp<CR>
-map <silent> <Leader><Tab> :buf #<CR>
-map <silent> <Leader>w 
+noremap <silent> <Leader>t :NERDTreeToggle<CR>
+noremap <silent> <Leader>a :FZF<CR>
+
+noremap <silent> <Leader>ch :HighlightColumnAdd<CR>
+noremap <silent> <Leader>co :HighlightColumnOne<CR>
+noremap <silent> <Leader>cc :HighlightColumnOff<CR>
+
+noremap <silent> <Leader>n :cn<CR>
+noremap <silent> <Leader>p :cp<CR>
+noremap <silent> <Leader><Tab> :buf #<CR>
+noremap <silent> <Leader>w <C-w>
+
+tnoremap <Esc> <C-\><C-n>
+tnoremap <C-o> <Esc>
 
 if executable('rg')
   let g:ackprg='rg --smart-case --no-heading --vimgrep'
@@ -78,6 +84,9 @@ set number
 set shiftwidth=2
 set tabstop=2
 set expandtab
+" Workaround for nvim not always calling :set nopaste after paste,
+" which results in :set noexpandtab being turned on globally :(
+au InsertLeave * set nopaste
 set nowrap
 set incsearch
 set hlsearch
@@ -98,7 +107,11 @@ autocmd BufRead,InsertEnter,InsertLeave * 2match LineLengthError /\%76v.*/
 highlight LineLengthError term=underline cterm=underline gui=underline
 autocmd ColorScheme * highlight LineLengthError term=underline cterm=underline gui=underline
 
+" Make line numbers a big more visible with a color matching jellybeans
+highlight linenr term=none cterm=none ctermfg=yellow ctermbg=none gui=none guifg=#fad07a guibg=NONE
+
 augroup fmt
   autocmd!
   autocmd BufWritePre *.hs undojoin | Neoformat
 augroup END
+

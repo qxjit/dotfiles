@@ -14,6 +14,9 @@ fi
 # Make sure ls on OSX knows it can do colors
 export CLICOLOR=1
 
+# Make some brighter colors, especially for directories
+export LSCOLORS=GxFxCxDxBxegedabagaced
+
 function rgb () {
   local r=$1
   local g=$2

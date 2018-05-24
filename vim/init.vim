@@ -67,6 +67,11 @@ map <silent> <Leader>n :cn<CR>
 map <silent> <Leader>p :cp<CR>
 map <silent> <Leader><Tab> :buf #<CR>
 map <silent> <Leader>w 
+map <silent> <Leader>wd :q<CR>
+map <silent> <Leader>w/ :vs<CR>
+map <silent> <Leader>w- :s<CR>
+map <silent> <Leader>fs :write<CR>
+map <silent> <Leader>fS :wall<CR>
 
 if executable('rg')
   let g:ackprg='rg --smart-case --no-heading --vimgrep'

@@ -77,6 +77,11 @@ noremap <silent> <Leader>n :cn<CR>
 noremap <silent> <Leader>p :cp<CR>
 noremap <silent> <Leader><Tab> :buf #<CR>
 noremap <silent> <Leader>w <C-w>
+noremap <silent> <Leader>wd :q<CR>
+noremap <silent> <Leader>w/ :vs<CR>
+noremap <silent> <Leader>w- :s<CR>
+noremap <silent> <Leader>fs :write<CR>
+noremap <silent> <Leader>fS :wall<CR>
 
 tnoremap <Esc> <C-\><C-n>
 tnoremap <C-o> <Esc>

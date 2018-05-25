@@ -55,6 +55,27 @@ endfunction
 
 command! -nargs=+ SearchReplace call s:SearchReplace(<f-args>)
 
+function s:GitLog()
+  let l:name=bufname('%')
+  let l:type=getbufvar('%', '&buftype', 'ERROR')
+  let l:basecmd="PAGER= git log --graph"
+
+  if l:type == "" && glob(l:name) != ""
+    let l:cmd=l:basecmd." ".l:name
+  else
+    let l:cmd=l:basecmd
+  endif
+
+  split
+  resize
+  execute "terminal ".l:cmd
+  set nomodified
+  execute "file git log ".l:name
+  noremap <silent> <buffer> q :bdelete!<CR>
+endfunction
+
+command! -nargs=0 GitLog call s:GitLog()
+
 let mapleader=" "
 
 noremap <Leader>sa :Ack!<Space>
@@ -72,6 +93,7 @@ noremap <silent> <Leader>gs :Gstatus<CR>
 noremap <silent> <Leader>gd :Gdiff<CR>
 noremap <silent> <Leader>gc :Gcommit<CR>
 noremap <silent> <Leader>gb :Gblame<CR>
+noremap <silent> <Leader>gl :GitLog<CR>
 
 noremap <silent> <Leader>n :cn<CR>
 noremap <silent> <Leader>p :cp<CR>

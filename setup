@@ -24,6 +24,7 @@ link "$HOME/dotfiles/vim" "$HOME/.config/nvim"
 link "$HOME/dotfiles/tmux.conf" "$HOME/.tmux.conf"
 link "$HOME/dotfiles/bash_profile" "$HOME/.bash_profile"
 link "$HOME/dotfiles/bash_profile" "$HOME/.bashrc"
+link "$HOME/dotfiles/inputrc" "$HOME/.inputrc"
 
 git submodule init
 git submodule update

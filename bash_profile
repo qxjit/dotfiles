@@ -1,12 +1,12 @@
 # vi: ft=sh
 
-set -o vi
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
 
 if [[ "$NVIM_LISTEN_ADDRESS" != "" ]] &&
    [[ $(type -p nvr) ]]; then
   export EDITOR="nvr -cc split --remote-wait"
+  alias nvim=nvr
 else
   export EDITOR=nvim
 fi

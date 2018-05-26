@@ -22,7 +22,7 @@ Plug 'sbdchd/neoformat', { 'commit': '4dba93d' }
 
 Plug 'qxjit/setcolors.vim', { 'commit': 'da71d38' }
 
-Plug 'tpope/vim-fugitive', { 'commit': '614e20b' }
+Plug 'jreybert/vimagit', { 'commit': '85c25ff' }
 
 Plug 'skwp/greplace.vim', { 'commit': 'a34dff3' }
 
@@ -137,5 +137,3 @@ augroup fmt
   autocmd BufWritePre *.hs undojoin | Neoformat
 augroup END
 
-" add fugitive to the statusline
-set statusline=%<%f\ %h%m%r%{fugitive#statusline()}%=%-14.(%l,%c%V%)\ %P

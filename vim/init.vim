@@ -73,10 +73,6 @@ noremap <Leader>sw "zyiw:Ack! z<CR>
 noremap <silent> <Leader>t :NERDTreeToggle<CR>
 noremap <silent> <Leader>a :CtrlP<CR>
 
-noremap <silent> <Leader>ch :HighlightColumnAdd<CR>
-noremap <silent> <Leader>co :HighlightColumnOne<CR>
-noremap <silent> <Leader>cc :HighlightColumnOff<CR>
-
 noremap <silent> <Leader>gs :Magit<CR>
 noremap <silent> <Leader>gl :GitLog<CR>
 

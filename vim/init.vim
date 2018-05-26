@@ -88,6 +88,7 @@ noremap <silent> <Leader>w/ :vsplit<CR>
 noremap <silent> <Leader>w- :split<CR>
 noremap <silent> <Leader>fs :write<CR>
 noremap <silent> <Leader>fS :wall<CR>
+noremap <silent> <Leader>bb :CtrlPBuffer<CR>
 
 tnoremap <Esc> <C-\><C-n>
 tnoremap <C-o> <Esc>

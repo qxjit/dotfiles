@@ -77,10 +77,7 @@ noremap <silent> <Leader>ch :HighlightColumnAdd<CR>
 noremap <silent> <Leader>co :HighlightColumnOne<CR>
 noremap <silent> <Leader>cc :HighlightColumnOff<CR>
 
-noremap <silent> <Leader>gs :Gstatus<CR>
-noremap <silent> <Leader>gd :Gdiff<CR>
-noremap <silent> <Leader>gc :Gcommit<CR>
-noremap <silent> <Leader>gb :Gblame<CR>
+noremap <silent> <Leader>gs :Magit<CR>
 noremap <silent> <Leader>gl :GitLog<CR>
 
 noremap <silent> <Leader>n :cn<CR>

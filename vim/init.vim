@@ -43,7 +43,7 @@ silent! colorscheme jellybeans
 hi StatusLine guibg=#404040 guifg=#b0cc55
 hi StatusLineNC guifg=#909090
 
-function s:GitLog()
+function! s:GitLog()
   let l:name=bufname('%')
   let l:type=getbufvar('%', '&buftype', 'ERROR')
   let l:basecmd="PAGER= git log --graph"

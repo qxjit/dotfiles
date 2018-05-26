@@ -26,6 +26,10 @@ Plug 'jreybert/vimagit', { 'commit': '85c25ff' }
 
 Plug 'skwp/greplace.vim', { 'commit': 'a34dff3' }
 
+Plug 'tpope/vim-surround', { 'commit': 'e49d6c2' }
+
+Plug 'tpope/vim-repeat', { 'commit': '8106e14' }
+
 call plug#end()
 
 syntax on

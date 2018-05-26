@@ -80,9 +80,12 @@ noremap <silent> <Leader>cc :HighlightColumnOff<CR>
 noremap <silent> <Leader>gs :Magit<CR>
 noremap <silent> <Leader>gl :GitLog<CR>
 
-noremap <silent> <Leader>n :cn<CR>
-noremap <silent> <Leader>p :cp<CR>
-noremap <silent> <Leader><Tab> :buf #<CR>
+noremap <silent> <Leader>n :cnext<CR>
+noremap <silent> <Leader>p :cprevious<CR>
+
+" Switch to alternate (previous) buffer in a window. See
+" :help alternate
+noremap <silent> <Leader><Tab> :buffer #<CR>
 noremap <silent> <Leader>w <C-w>
 noremap <silent> <Leader>w/ :vsplit<CR>
 noremap <silent> <Leader>w- :split<CR>

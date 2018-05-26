@@ -1,4 +1,6 @@
-set termguicolors
+if $COLORTERM == "truecolor"
+  set termguicolors
+endif
 
 call plug#begin('~/.local/share/nvim/plugged')
 
@@ -39,9 +41,6 @@ filetype plugin indent on
 " missing so that we can run :PluginInstall the first
 " time without getting an error.
 silent! colorscheme jellybeans
-
-hi StatusLine guibg=#404040 guifg=#b0cc55
-hi StatusLineNC guifg=#909090
 
 function! s:GitLog()
   let l:name=bufname('%')
@@ -130,7 +129,12 @@ highlight LineLengthError term=underline cterm=underline gui=underline
 autocmd ColorScheme * highlight LineLengthError term=underline cterm=underline gui=underline
 
 " Make line numbers a big more visible with a color matching jellybeans
-highlight linenr term=none cterm=none ctermfg=yellow ctermbg=none gui=none guifg=#fad07a guibg=NONE
+highlight linenr term=none cterm=none ctermfg=179 ctermbg=none gui=none guifg=#fad07a guibg=NONE
+
+" Make the status bar look nicer
+highlight StatusLine ctermbg=238 ctermfg=112 guibg=#404040 guifg=#b0cc55
+highlight StatusLineNC ctermfg=249 guifg=#909090
+
 
 augroup fmt
   autocmd!

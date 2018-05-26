@@ -24,6 +24,8 @@ Plug 'qxjit/setcolors.vim', { 'commit': 'da71d38' }
 
 Plug 'tpope/vim-fugitive', { 'commit': '614e20b' }
 
+Plug 'skwp/greplace.vim', { 'commit': 'a34dff3' }
+
 call plug#end()
 
 syntax on
@@ -36,24 +38,6 @@ silent! colorscheme jellybeans
 
 hi StatusLine guibg=#404040 guifg=#b0cc55
 hi StatusLineNC guifg=#909090
-
-function! s:SearchReplace(search,replace)
-  " This assumes that the :Ack! command supports --case-sensitive to
-  " override any default behavior that would make the cdo s/// not
-  " behave as expected. It would be better to abstract this out
-  " in some way that I don't have time to think about right now.
-  "
-  " Using :cdo has the following shortcomings and tradeoffs that are known
-  "   * The y/n/q/a etc options apply on the current hit *only*
-  "     * Use Ctrl-C Abort
-  "   * Saving after each file to avoid building up a bunch of unsaved buffers
-  "   * Files are not syntax highlighted (inside the cdo)
-  execute ":Ack! --case-sensitive ".a:search
-  execute ":cdo s/".a:search."/".a:replace."/c | :w | update"
-endfunction
-
-
-command! -nargs=+ SearchReplace call s:SearchReplace(<f-args>)
 
 function s:GitLog()
   let l:name=bufname('%')
@@ -79,7 +63,7 @@ command! -nargs=0 GitLog call s:GitLog()
 let mapleader=" "
 
 noremap <Leader>sa :Ack!<Space>
-noremap <Leader>sr :SearchReplace<Space>
+noremap <Leader>sr :Gsearch<Space>
 noremap <Leader>sw "zyiw:Ack! z<CR>
 
 noremap <silent> <Leader>t :NERDTreeToggle<CR>

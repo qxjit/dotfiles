@@ -1,0 +1,3 @@
+#!/usr/bin/env bash --login
+
+exec abduco -A dev nvim

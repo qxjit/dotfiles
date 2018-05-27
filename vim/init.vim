@@ -34,6 +34,8 @@ Plug 'tpope/vim-surround', { 'commit': 'e49d6c2' }
 
 Plug 'tpope/vim-repeat', { 'commit': '8106e14' }
 
+Plug 'gcmt/taboo.vim', { 'commit': '1367baf' }
+
 call plug#end()
 
 syntax on

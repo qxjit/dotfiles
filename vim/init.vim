@@ -133,9 +133,11 @@ autocmd ColorScheme * highlight LineLengthError term=underline cterm=underline g
 " Make line numbers a big more visible with a color matching jellybeans
 highlight linenr term=none cterm=none ctermfg=179 ctermbg=none gui=none guifg=#fad07a guibg=NONE
 
-" Make the status bar look nicer
+" Make the status bar and tabline look nicer
 highlight StatusLine ctermbg=238 ctermfg=112 guibg=#404040 guifg=#b0cc55
 highlight StatusLineNC ctermfg=249 guifg=#909090
+highlight TabLine ctermbg=238 ctermfg=249 guibg=#404040  guifg=#909090
+highlight TabLineSel ctermbg=238 ctermfg=112 guibg=#404040 guifg=#b0cc55
 
 " Make the colors look nicer in the terminal, if supported.
 if s:truecolor || has('gui_running')

@@ -36,6 +36,8 @@ Plug 'tpope/vim-repeat', { 'commit': '8106e14' }
 
 Plug 'gcmt/taboo.vim', { 'commit': '1367baf' }
 
+Plug 'nicwest/vim-http', { 'commit': '99d3edf' }
+
 call plug#end()
 
 syntax on

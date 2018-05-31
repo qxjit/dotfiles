@@ -43,11 +43,6 @@ call plug#end()
 syntax on
 filetype plugin indent on
 
-" silent! here suppresses errors about the colorscheme
-" missing so that we can run :PluginInstall the first
-" time without getting an error.
-silent! colorscheme jellybeans
-
 function! s:GitLog()
   let l:name=bufname('%')
   let l:type=getbufvar('%', '&buftype', 'ERROR')
@@ -111,37 +106,64 @@ set number
 set shiftwidth=2
 set tabstop=2
 set expandtab
-" Workaround for nvim not always calling :set nopaste after paste,
-" which results in :set noexpandtab being turned on globally :(
-au InsertLeave * set nopaste
 set nowrap
 set incsearch
 set hlsearch
 
-set nobackup
 set undofile
 set undodir=~/.config/nvim/undodir
 
-" Highlight trailing whitespace
-autocmd InsertEnter * match ExtraWhitespace /\s\+\%#\@<!$/
-autocmd BufRead,InsertLeave * match ExtraWhitespace /\s\+$/
-" Set up highlight group & retain through colorscheme changes
-highlight ExtraWhitespace ctermbg=88 guibg=red
-autocmd ColorScheme * highlight ExtraWhitespace ctermbg=88 guibg=red
+" Store backups in a different directory to avoid spamming filesystem
+" events inside projects
+set backupdir=~/.config/nvim/backup
 
-" Highlight too-long lines
-autocmd BufRead,InsertEnter,InsertLeave * 2match LineLengthError /\%76v.*/
-highlight LineLengthError term=underline cterm=underline gui=underline
-autocmd ColorScheme * highlight LineLengthError term=underline cterm=underline gui=underline
+" Use original vim backup behavior to avoid spurious 4913 files (and
+" associated events) that come from the default 'auto' behavior.
+" This is slightly slower to write, see :help backupcopy for more
+" info about the tradeoff being made here. Set this to 'auto' for a hack
+" that will let filesystem events by detected by haskell tools inside dockerd
+" from OSX, until the fixed fsnotify has permeated the world.
+set backupcopy=yes
 
-" Make line numbers a big more visible with a color matching jellybeans
-highlight linenr term=none cterm=none ctermfg=179 ctermbg=none gui=none guifg=#fad07a guibg=NONE
+function! s:ColorOverrides()
+  " Set up highlight group & retain through colorscheme changes
+  highlight ExtraWhitespace ctermbg=88 guibg=red
 
-" Make the status bar and tabline look nicer
-highlight StatusLine ctermbg=238 ctermfg=112 guibg=#404040 guifg=#b0cc55
-highlight StatusLineNC ctermfg=249 guifg=#909090
-highlight TabLine ctermbg=238 ctermfg=249 guibg=#404040  guifg=#909090
-highlight TabLineSel ctermbg=238 ctermfg=112 guibg=#404040 guifg=#b0cc55
+  " Make line numbers a big more visible with a color matching jellybeans
+  highlight linenr ctermfg=179 guifg=#fad07a
+
+  " Make the status bar and tabline look nicer
+  highlight StatusLine ctermbg=238 ctermfg=112 guibg=#404040 guifg=#b0cc55
+  highlight StatusLineNC ctermfg=249 guifg=#909090
+  highlight TabLine ctermbg=238 ctermfg=249 guibg=#404040  guifg=#909090
+  highlight TabLineSel ctermbg=238 ctermfg=112 guibg=#404040 guifg=#b0cc55
+endfunction
+
+augroup InitDotVim
+  autocmd!
+
+  " Set our color overrides when colorscheme is set
+  autocmd ColorScheme * call s:ColorOverrides()
+
+  " Display coumn for to delineate long lines
+  autocmd BufWinEnter * set colorcolumn=80
+
+  " Highlight extra whitespace
+  autocmd BufRead,InsertLeave * match ExtraWhitespace /\s\+$/
+
+  " Format .hs files automatically with Neoformat
+  autocmd BufWritePre *.hs undojoin | Neoformat
+
+  " Workaround for nvim not always calling :set nopaste after paste,
+  " which results in :set noexpandtab being turned on globally :(
+  au InsertLeave * set nopaste
+augroup END
+
+" silent! here suppresses errors about the colorscheme
+" missing so that we can run :PluginInstall the first
+" time without getting an error.
+silent! colorscheme jellybeans
+
 
 " Make the colors look nicer in the terminal, if supported.
 if s:truecolor || has('gui_running')
@@ -165,9 +187,4 @@ if s:truecolor || has('gui_running')
   let g:terminal_color_14='#54ced6' " cyan
   let g:terminal_color_15='#ffffff' " white
 endif
-
-augroup fmt
-  autocmd!
-  autocmd BufWritePre *.hs undojoin | Neoformat
-augroup END
 

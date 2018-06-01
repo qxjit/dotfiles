@@ -139,6 +139,9 @@ function! s:ColorOverrides()
   highlight TabLineSel ctermbg=238 ctermfg=112 guibg=#404040 guifg=#b0cc55
 endfunction
 
+" disable elm-vim's formatting in favor of NeoFormat
+let g:elm_format_autosave=0
+
 augroup InitDotVim
   autocmd!
 
@@ -153,6 +156,7 @@ augroup InitDotVim
 
   " Format .hs files automatically with Neoformat
   autocmd BufWritePre *.hs undojoin | Neoformat
+  autocmd BufWritePre *.elm undojoin | Neoformat
 
   " Workaround for nvim not always calling :set nopaste after paste,
   " which results in :set noexpandtab being turned on globally :(

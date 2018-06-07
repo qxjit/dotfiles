@@ -150,6 +150,11 @@ set nowrap
 set incsearch
 set hlsearch
 
+" Enable mouse in all modes. With this (and a reasonable terminal emulator)
+" you can scroll, resize windows, click on text, and do lots of other mousey
+" things even in the terminal.
+set mouse=a
+
 set undofile
 set undodir=~/.config/nvim/undodir
 

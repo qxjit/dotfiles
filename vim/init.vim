@@ -43,6 +43,9 @@ call plug#end()
 syntax on
 filetype plugin indent on
 
+"
+" Command to view the git log
+"
 function! s:GitLog()
   let l:name=bufname('%')
   let l:type=getbufvar('%', '&buftype', 'ERROR')
@@ -64,6 +67,32 @@ endfunction
 
 command! -nargs=0 GitLog call s:GitLog()
 
+"
+" Command to sort the quickfix list
+"
+function! s:SortQuickfixList()
+  call setqflist(sort(getqflist(), 's:ByQuickFixBuffer'))
+endfunction
+
+function! s:ByQuickFixBuffer(qfA,qfB)
+  let l:bufA = bufname(a:qfA.bufnr)
+  let l:bufB = bufname(a:qfB.bufnr)
+
+  if l:bufA == l:bufB
+    return 0
+  else
+    if l:bufA < l:bufB
+      return -1
+    else
+      return 1
+    endif
+  endif
+endfunction
+
+
+command! SortQuickfixList call s:SortQuickfixList()
+
+
 let mapleader=" "
 
 noremap <Leader>sa :Ack!<Space>
@@ -76,6 +105,13 @@ noremap <silent> <Leader>a :CtrlP<CR>
 noremap <silent> <Leader>gs :Magit<CR>
 noremap <silent> <Leader>gl :GitLog<CR>
 
+" Mappings for the quickfix list
+noremap <silent> <Leader>co :copen<CR>
+noremap <silent> <Leader>cc :cclose<CR>
+noremap <silent> <Leader>cs :SortQuickfixList<CR>
+
+" Special mappings for the quickfix list, because they are
+" easier to hit repeatedly without the preceding 'c'
 noremap <silent> <Leader>n :cnext<CR>
 noremap <silent> <Leader>p :cprevious<CR>
 
@@ -97,6 +133,7 @@ let g:ctrlp_use_caching=0
 if executable('rg')
   let g:ctrlp_user_command='rg %s --files --color never'
   let g:ackprg='rg --smart-case --no-heading --vimgrep'
+  let g:ack_qhandler='botright copen | SortQuickfixList'
 elseif executable('ag')
   let g:ctrlp_user_command='ag %s -l --nocolor -g ""'
   let g:ackprg='ag --smart-case --vimgrep'

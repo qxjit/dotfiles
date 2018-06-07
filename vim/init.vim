@@ -96,7 +96,6 @@ command! SortQuickfixList call s:SortQuickfixList()
 let mapleader=" "
 
 noremap <Leader>sa :Ack!<Space>
-noremap <Leader>sr :Gsearch<Space>
 noremap <Leader>sw "zyiw:Ack! -w 'z'<CR>
 
 noremap <silent> <Leader>t :NERDTreeToggle<CR>
@@ -109,6 +108,10 @@ noremap <silent> <Leader>gl :GitLog<CR>
 noremap <silent> <Leader>co :copen<CR>
 noremap <silent> <Leader>cc :cclose<CR>
 noremap <silent> <Leader>cs :SortQuickfixList<CR>
+
+" Open the quicklist results in a buffer for editing and
+" replacing across all results.
+noremap <silent> <Leader>cr :execute ':Gqfopen' <Bar> cclose<CR>
 
 " Special mappings for the quickfix list, because they are
 " easier to hit repeatedly without the preceding 'c'

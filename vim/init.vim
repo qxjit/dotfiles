@@ -96,7 +96,7 @@ command! SortQuickfixList call s:SortQuickfixList()
 let mapleader=" "
 
 noremap <Leader>sa :Ack!<Space>
-noremap <Leader>sw "zyiw:Ack! -w 'z'<CR>
+noremap <Leader>sw :Ack! -w '<cword>'<CR>
 
 noremap <silent> <Leader>t :NERDTreeToggle<CR>
 noremap <silent> <Leader>a :CtrlP<CR>

@@ -97,7 +97,7 @@ let mapleader=" "
 
 noremap <Leader>sa :Ack!<Space>
 noremap <Leader>sr :Gsearch<Space>
-noremap <Leader>sw "zyiw:Ack! z<CR>
+noremap <Leader>sw "zyiw:Ack! -w 'z'<CR>
 
 noremap <silent> <Leader>t :NERDTreeToggle<CR>
 noremap <silent> <Leader>a :CtrlP<CR>

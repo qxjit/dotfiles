@@ -1,3 +1,4 @@
+let s:current_filename=expand("<sfile>")
 let s:truecolor=($COLORTERM == "truecolor")
 
 if s:truecolor
@@ -42,6 +43,21 @@ call plug#end()
 
 syntax on
 filetype plugin indent on
+
+"
+" Provide a way to reload the vim setup nicely
+"
+function! s:SourceInitFile()
+  execute ':source '.s:current_filename
+endfunction
+
+function! s:Reload()
+  call s:SourceInitFile()
+  PlugInstall
+endfunction
+
+command! SourceInitFile call s:SourceInitFile()
+command! Reload call s:Reload()
 
 "
 " Command to view the git log

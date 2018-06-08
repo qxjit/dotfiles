@@ -149,14 +149,11 @@ tnoremap <C-o> <Esc>
 
 let g:ctrlp_use_caching=0
 
-" This is the default, but putting it here explicitly for now allows for
-" changes to get caught and reset when Reload is used.
-"
-let g:ack_qhandler='botright copen'
-
 if executable('rg')
   let g:ctrlp_user_command='rg %s --files --color never'
   let g:ackprg='rg --smart-case --no-heading --vimgrep'
+  let g:ack_apply_qmappings = 1
+  let g:ack_qhandler='botright copen | SortQuickfixList'
 elseif executable('ag')
   let g:ctrlp_user_command='ag %s -l --nocolor -g ""'
   let g:ackprg='ag --smart-case --vimgrep'
@@ -212,14 +209,6 @@ augroup InitDotVim
 
   " Set our color overrides when colorscheme is set
   autocmd ColorScheme * call s:ColorOverrides()
-
-  " Sort the quick fix list after a command populates it. This is a workaround
-  " for rg using parallelism and therefore returning results out of order. It
-  " is run as an autocmd rather than customizing the ack handler because
-  " customizing the ack handler accidentally ruined the ack-specific key
-  " mappings in the quickfix list. We probably want to revisit this as some
-  " point
-  autocmd QuickFixCmdPost * call s:SortQuickfixList()
 
   " Display coumn for to delineate long lines
   autocmd BufWinEnter * set colorcolumn=80

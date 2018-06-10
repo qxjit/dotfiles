@@ -39,6 +39,8 @@ Plug 'gcmt/taboo.vim', { 'commit': '1367baf' }
 
 Plug 'nicwest/vim-http', { 'commit': '99d3edf' }
 
+Plug 'ervandew/supertab', { 'commit': '40fe711' }
+
 call plug#end()
 
 syntax on

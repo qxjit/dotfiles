@@ -169,6 +169,12 @@ set nowrap
 set incsearch
 set hlsearch
 
+" if we have inccommand (just neovim right now), enable it so we can see
+" live results of :substitute and friends as we type
+if exists('&inccommand')
+  set inccommand=split
+endif
+
 " Enable mouse in all modes. With this (and a reasonable terminal emulator)
 " you can scroll, resize windows, click on text, and do lots of other mousey
 " things even in the terminal.

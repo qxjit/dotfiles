@@ -221,6 +221,11 @@ augroup InitDotVim
   " Display coumn for to delineate long lines
   autocmd BufWinEnter * set colorcolumn=80
 
+  " Hack to work around hfsnotify failing to pick up file modified events
+  " on linux inside docker by making Vim create a '4913' file in the
+  " directory. See comments about backupcopy above.
+  autocmd BufWinEnter *.hs setlocal backupcopy=auto
+
   " Highlight extra whitespace
   autocmd BufRead,InsertLeave * match ExtraWhitespace /\s\+$/
 
@@ -237,7 +242,6 @@ augroup END
 " missing so that we can run :PluginInstall the first
 " time without getting an error.
 silent! colorscheme jellybeans
-
 
 " Make the colors look nicer in the terminal, if supported.
 if s:truecolor || has('gui_running')

@@ -172,7 +172,7 @@ set hlsearch
 " if we have inccommand (just neovim right now), enable it so we can see
 " live results of :substitute and friends as we type
 if exists('&inccommand')
-  set inccommand=split
+  set inccommand=nosplit
 endif
 
 " Enable mouse in all modes. With this (and a reasonable terminal emulator)

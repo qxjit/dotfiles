@@ -86,6 +86,22 @@ endfunction
 command! -nargs=0 GitLog call s:GitLog()
 
 "
+" Command to view the git blame
+"
+function! s:GitBlame()
+  let l:name=bufname('%')
+  let l:cmd="PAGER= git blame ".l:name
+  split
+  resize
+  execute "terminal ".l:cmd
+  set nomodified
+  execute "file git blame ".l:name
+  noremap <silent> <buffer> q :bdelete!<CR>
+endfunction
+
+command! -nargs=0 GitBlame call s:GitBlame()
+
+"
 " Command to sort the quickfix list
 "
 function! s:SortQuickfixList()
@@ -121,6 +137,7 @@ noremap <silent> <Leader>a :CtrlP<CR>
 
 noremap <silent> <Leader>gs :Magit<CR>
 noremap <silent> <Leader>gl :GitLog<CR>
+noremap <silent> <Leader>gb :GitBlame<CR>
 
 " Mappings for the quickfix list
 noremap <silent> <Leader>co :copen<CR>

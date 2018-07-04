@@ -31,6 +31,10 @@ link "$HOME/dotfiles/inputrc" "$HOME/.inputrc"
 
 link "$HOME/dotfiles/bin/dev" "$HOME/.local/bin/dev"
 
+# Install Hammerspoon from
+#   https://github.com/Hammerspoon/hammerspoon/releases/tag/0.9.66
+link "$HOME/dotfiles/hammerspoon" "$HOME/.hammerspoon"
+
 git submodule init
 git submodule update
 

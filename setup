@@ -22,7 +22,6 @@ link () {
 mkdir -p "$HOME/.config"
 mkdir -p "$HOME/.local/bin"
 
-link "$HOME/dotfiles/vim" "$HOME/.config/nvim"
 link "$HOME/dotfiles/alacritty" "$HOME/.config/alacritty"
 link "$HOME/dotfiles/tmux.conf" "$HOME/.tmux.conf"
 link "$HOME/dotfiles/bash_profile" "$HOME/.bash_profile"
@@ -60,5 +59,7 @@ if [ "$FORMULAS" != "" ]; then
 fi
 
 brew tap caskroom/fonts && brew cask install font-source-code-pro
+
+git clone git@github.com:flipstone/vimstone.git ~/.config/nvim
 
 nvim -c ':PlugInstall | :qa'

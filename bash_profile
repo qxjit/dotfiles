@@ -38,3 +38,10 @@ if [[ "$COLORTERM" == "truecolor" ]] ||
   )
 fi
 
+if [ -e /Users/qxjit/.nix-profile/etc/profile.d/nix.sh ]; then . /Users/qxjit/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f '/Users/qxjit/Applications/google-cloud-sdk/path.bash.inc' ]; then . '/Users/qxjit/Applications/google-cloud-sdk/path.bash.inc'; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f '/Users/qxjit/Applications/google-cloud-sdk/completion.bash.inc' ]; then . '/Users/qxjit/Applications/google-cloud-sdk/completion.bash.inc'; fi

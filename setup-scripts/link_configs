@@ -1,0 +1,30 @@
+#!/usr/bin/env sh
+
+set -e
+
+link () {
+  SRC=$1
+  DST=$2
+
+  if [ -e "$DST" ]; then
+    echo "$DST already exists, not overwriting. If you want the one from dotfiles, move the old one out of the way and re-run setup"
+  else
+    echo "Linking $SRC -> $DST"
+    ln -s "$SRC" "$DST"
+  fi
+}
+
+mkdir -p "$HOME/.config"
+mkdir -p "$HOME/.local/bin"
+
+link "$HOME/dotfiles/alacritty" "$HOME/.config/alacritty"
+link "$HOME/dotfiles/tmux.conf" "$HOME/.tmux.conf"
+link "$HOME/dotfiles/bash_profile" "$HOME/.bash_profile"
+link "$HOME/dotfiles/bash_profile" "$HOME/.bashrc"
+link "$HOME/dotfiles/inputrc" "$HOME/.inputrc"
+
+link "$HOME/dotfiles/bin/dev" "$HOME/.local/bin/dev"
+
+# Install Hammerspoon from
+#   https://github.com/Hammerspoon/hammerspoon/releases/tag/0.9.66
+link "$HOME/dotfiles/hammerspoon" "$HOME/.hammerspoon"

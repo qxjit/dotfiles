@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+set -e
+
+SDK_ARCHIVE="google-cloud-sdk-225.0.0-darwin-x86_64.tar.gz"
+SDK_URL="https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/$SDK_ARCHIVE"
+DOWNLOAD_LOCATION="/Users/qxjit/$SDK_ARCHIVE"
+INSTALL_LOCATION="/Users/qxjit/Applications"
+
+echo "Downloading $SDK_ARCHIVE"
+curl $SDK_URL -o $DOWNLOAD_LOCATION
+
+echo "Installing $SDK_ARCHIVE"
+tar xfz $DOWNLOAD_LOCATION --directory $INSTALL_LOCATION

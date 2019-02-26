@@ -25,36 +25,21 @@ hotkeys:bind({}, "f", function()
   hotkeys:exit()
 end)
 
-hotkeys:bind({}, "Left", function()
-  local win = hs.window.focusedWindow()
-  savingAndRestoringFullscreen(win, function()
-    win:moveOneScreenWest()
-  end)
+hotkeys:bind({}, "m", function()
+  local currScreen = hs.mouse.getCurrentScreen()
+  moveMouseTo(currScreen:next())
   hotkeys:exit()
 end)
 
-hotkeys:bind({}, "Right", function()
-  local win = hs.window.focusedWindow()
-  savingAndRestoringFullscreen(win, function()
-    win:moveOneScreenEast()
-  end)
+hotkeys:bind("shift", "m", function()
+  local currScreen = hs.mouse.getCurrentScreen()
+  moveMouseTo(currScreen:previous())
   hotkeys:exit()
 end)
 
-function savingAndRestoringFullscreen(win, fn)
-  local wasFullscreen = win:isFullScreen()
-
-  if (wasFullscreen) then
-    win:setFullScreen(false)
-  end
-
-  fn()
-
-  if (wasFullscreen) then
-    hs.timer.doAfter(0.6, function()
-      win:setFullScreen(true)
-    end)
-  end
+function moveMouseTo(screen)
+  local pos = hs.mouse.getRelativePosition()
+  hs.mouse.setRelativePosition(pos, screen)
 end
 
 function switchLayoutToDvorak()

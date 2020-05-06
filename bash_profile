@@ -28,11 +28,12 @@ function rgb () {
 
 # Check for both COLORTERM or TMUX here because TMUX
 # nulls out COLORTERM.
-if [[ "$COLORTERM" == "truecolor" ]] ||
+if [[ "$TERM" == "xterm-256color" ]] ||
+   [[ "$COLORTERM" == "truecolor" ]] ||
    [[ "$TMUX" != "" ]]; then
   export PS1=$(
   rgb 144 144 144 "\h ";
-  rgb 176 204 85 "\u ";
+  rgb 176 204 85 "\\\u ";
   rgb 191 173 235 "\W ";
   rgb 144 144 144 "\\$ ";
   )

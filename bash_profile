@@ -1,5 +1,9 @@
 # vi: ft=sh
 
+if [[ -f .bashrc.local ]]; then
+  . .bashrc.local
+fi
+
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/.cargo/bin:$PATH"
 

@@ -1,0 +1,2 @@
+#!/bin/sh
+exec upterm host --force-command 'tmux attach -t dev' -- tmux new -A -s dev

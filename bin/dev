@@ -1,3 +1,2 @@
-#!/usr/bin/env bash --login
-
-exec abduco -A dev nvim
+#!/bin/sh
+exec tmux new -A -s dev

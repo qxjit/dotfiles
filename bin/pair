@@ -1,2 +1,6 @@
 #!/bin/sh
-exec upterm host --force-command 'tmux attach -t dev' -- tmux new -A -s dev
+exec \
+  upterm host \
+  --server ssh://upterm.flipstone.com:38215 \
+  --force-command 'tmux attach -t dev' \
+  -- tmux new -A -s dev

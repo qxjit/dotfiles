@@ -209,16 +209,6 @@ cursor_style: Block
 # Live config reload (changes require restart)
 live_config_reload: true
 
-# Shell
-#
-# You can set shell.program to the path of your favorite shell, e.g. /bin/fish.
-# Entries in shell.args are passed unmodified as arguments to the shell.
-#
-shell:
-  program: bash
-  args:
-    - --login
-
 # Key bindings
 #
 # Each binding is defined as an object with some properties. Most of the

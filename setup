@@ -7,7 +7,11 @@ if [ ! -d "$HOME/dotfiles" ]; then
   exit 1
 fi
 
+./setup-scripts/apt_packages
+./setup-scripts/docker
+./setup-scripts/pip_packages
+./setup-scripts/rustup-init.sh
 ./setup-scripts/link_configs
-./setup-scripts/homebrews
 ./setup-scripts/vimstone
-./setup-scripts/gcloud_sdk
+./setup-scripts/install_fonts
+./setup-scripts/manual_reminders

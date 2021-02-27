@@ -15,16 +15,9 @@ link () {
 }
 
 mkdir -p "$HOME/.config"
-mkdir -p "$HOME/.local/bin"
+mkdir -p "$HOME/.config/fish"
 
 link "$HOME/dotfiles/alacritty" "$HOME/.config/alacritty"
 link "$HOME/dotfiles/tmux.conf" "$HOME/.tmux.conf"
-link "$HOME/dotfiles/bash_profile" "$HOME/.bash_profile"
-link "$HOME/dotfiles/bash_profile" "$HOME/.bashrc"
-link "$HOME/dotfiles/inputrc" "$HOME/.inputrc"
+link "$HOME/dotfiles/config.fish" "$HOME/.config/fish/config.fish"
 
-link "$HOME/dotfiles/bin/dev" "$HOME/.local/bin/dev"
-
-# Install Hammerspoon from
-#   https://github.com/Hammerspoon/hammerspoon/releases/tag/0.9.66
-link "$HOME/dotfiles/hammerspoon" "$HOME/.hammerspoon"

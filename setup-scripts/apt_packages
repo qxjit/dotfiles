@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+set -e
+
+sudo apt install \
+  git \
+  fish \
+  neovim \
+  ripgrep \
+  jq \
+  libxml2-utils \
+  tmux \
+  nodejs \
+  python3-pip
+

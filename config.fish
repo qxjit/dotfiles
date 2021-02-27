@@ -26,7 +26,7 @@ set fish_user_paths \
   /usr/local/go/bin \
   $HOME/go/bin
 
-set -x DOCKER_HOST unix:///run/user/1000/docker.sock
+set -x DOCKER_HOST unix:///run/user/(id -u)/docker.sock
 
 if [ "$NVIM_LISTEN_ADDRESS" != "" ] && type -q nvr;
   set -x EDITOR "nvr -cc split --remote-wait"

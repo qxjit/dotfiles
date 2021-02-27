@@ -1,10 +1,20 @@
 set fish_greeting
 
 function fish_prompt
-  printf "%s%s %s%s %s%s%s> " \
+  set check_status $status
+
+  if [ $check_status != 0 ]
+    set prompt_status " 💥 $check_status 💥"
+  else
+    set prompt_status ""
+  end
+
+
+  printf "%s%s %s%s %s%s%s$prompt_status%s> " \
     (set_color 909090 brblack) (hostname) \
     (set_color b0cc55 green) (whoami) \
     (set_color bfadeb magenta) (prompt_pwd) \
+    (set_color -o ff3334 brred) \
     (set_color 909090 brblack)
 end
 

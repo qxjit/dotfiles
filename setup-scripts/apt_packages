@@ -11,5 +11,6 @@ sudo apt install \
   libxml2-utils \
   tmux \
   nodejs \
-  python3-pip
+  python3-pip \
+  uidmap
 

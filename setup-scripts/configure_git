@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+set -e
+
+git config --global user.email "david.vollbracht@gmail.com"
+git config --global user.name "David Vollbracht"

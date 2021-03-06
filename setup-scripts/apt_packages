@@ -12,5 +12,6 @@ sudo apt install \
   tmux \
   nodejs \
   python3-pip \
-  uidmap
+  uidmap \
+  xclip
 

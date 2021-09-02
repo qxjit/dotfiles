@@ -5,7 +5,6 @@ set -e
 sudo apt install \
   git \
   fish \
-  neovim \
   ripgrep \
   jq \
   libxml2-utils \

@@ -12,5 +12,6 @@ sudo apt install \
   nodejs \
   python3-pip \
   uidmap \
+  fzf \
   xclip
 

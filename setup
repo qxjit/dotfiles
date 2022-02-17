@@ -15,4 +15,6 @@ fi
 ./setup-scripts/link_configs
 ./setup-scripts/vimstone
 ./setup-scripts/install_fonts
+./setup-scripts/upterm
+./setup-scripts/obsidian
 ./setup-scripts/manual_reminders

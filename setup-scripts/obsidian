@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+
+set -e
+
+OBSIDIAN_VERSION=0.13.23
+OBSIDIAN_URL="https://github.com/obsidianmd/obsidian-releases/releases/download/v$OBSIDIAN_VERSION/Obsidian-$OBSIDIAN_VERSION.AppImage"
+INSTALL_PATH="$HOME/.local/bin/obsidian"
+
+curl -L "$OBSIDIAN_URL" -o "$INSTALL_PATH"
+chmod 744 "$INSTALL_PATH"

@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+set -e
+
+UPTERM_VERSION=0.6.8
+
+UPTERM_URL="https://github.com/owenthereal/upterm/releases/download/v$UPTERM_VERSION/upterm_linux_amd64.tar.gz"
+INSTALL_PATH="$HOME/.local/bin/upterm"
+
+curl -L \
+  "$UPTERM_URL" \
+  | tar xfz - --to-stdout upterm \
+  > "$INSTALL_PATH"
+
+chmod 744 "$INSTALL_PATH"

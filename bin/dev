@@ -1,2 +1,2 @@
 #!/bin/sh
-exec tmux new -A -s dev
+exec tmux new -A -s dev nvim

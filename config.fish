@@ -22,9 +22,7 @@ set fish_user_paths \
   $HOME/.local/bin \
   $HOME/.cargo/bin \
   $HOME/dotfiles/bin \
-  $HOME/bin \
-  /usr/local/go/bin \
-  $HOME/go/bin
+  $HOME/bin
 
 set -x DOCKER_HOST unix:///run/user/(id -u)/docker.sock
 

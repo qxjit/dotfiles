@@ -17,4 +17,5 @@ fi
 ./setup-scripts/install_fonts
 ./setup-scripts/upterm
 ./setup-scripts/obsidian
+./setup-scripts/tailscale
 ./setup-scripts/manual_reminders

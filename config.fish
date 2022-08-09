@@ -25,10 +25,3 @@ set fish_user_paths \
   $HOME/bin
 
 set -x DOCKER_HOST unix:///run/user/(id -u)/docker.sock
-
-if [ "$NVIM_LISTEN_ADDRESS" != "" ] && type -q nvr;
-  set -x EDITOR "nvr -cc split --remote-wait"
-  alias nvim=nvr
-else
-  set -x EDITOR nvim
-end

@@ -2,7 +2,7 @@
 
 set -e
 
-UPTERM_VERSION=0.6.8
+UPTERM_VERSION=0.7.5
 
 UPTERM_URL="https://github.com/owenthereal/upterm/releases/download/v$UPTERM_VERSION/upterm_linux_amd64.tar.gz"
 INSTALL_PATH="$HOME/.local/bin/upterm"

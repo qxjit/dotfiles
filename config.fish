@@ -21,6 +21,7 @@ end
 set fish_user_paths \
   $HOME/.local/bin \
   $HOME/.cargo/bin \
+  $HOME/.python/bin \
   $HOME/dotfiles/bin \
   $HOME/bin
 

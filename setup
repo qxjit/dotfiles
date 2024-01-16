@@ -8,9 +8,9 @@ if [ ! -d "$HOME/dotfiles" ]; then
 fi
 
 ./setup-scripts/apt_packages
+./setup-scripts/pip_packages
 ./setup-scripts/configure_git
 ./setup-scripts/docker
-./setup-scripts/pip_packages
 ./setup-scripts/rustup-init.sh
 ./setup-scripts/link_configs
 ./setup-scripts/vimstone

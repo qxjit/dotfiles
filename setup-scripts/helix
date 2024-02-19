@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+set -e
+
+mkdir -p ~/.local/bin
+curl -L \
+  https://github.com/helix-editor/helix/releases/download/23.10/helix-23.10-x86_64.AppImage \
+  -o ~/.local/bin/hx
+chmod 755 ~/.local/bin/hx

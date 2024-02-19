@@ -42,7 +42,7 @@ white = "0xffffff"
 yellow = "0xe6c547"
 
 [colors.primary]
-background = "0x000000"
+background = "0x080808"
 foreground = "0xeaeaea"
 
 [env]
@@ -86,8 +86,8 @@ mods = "Command"
 
 [[keyboard.bindings]]
 action = "SpawnNewInstance"
-key = "S"
-mods = "Control"
+key = "A"
+mods = "Command"
 
 [[keyboard.bindings]]
 chars = "\u001BOH"

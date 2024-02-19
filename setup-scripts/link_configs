@@ -18,6 +18,8 @@ mkdir -p "$HOME/.config"
 mkdir -p "$HOME/.config/fish"
 
 link "$HOME/dotfiles/alacritty" "$HOME/.config/alacritty"
+link "$HOME/dotfiles/zellij" "$HOME/.config/zellij"
+link "$HOME/dotfiles/helix" "$HOME/.config/helix"
 link "$HOME/dotfiles/tmux.conf" "$HOME/.tmux.conf"
 link "$HOME/dotfiles/config.fish" "$HOME/.config/fish/config.fish"
 

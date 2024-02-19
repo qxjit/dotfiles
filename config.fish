@@ -27,4 +27,4 @@ set fish_user_paths \
 
 set -x DOCKER_HOST unix:///run/user/(id -u)/docker.sock
 
-set -q GHCUP_INSTALL_BASE_PREFIX[1]; or set GHCUP_INSTALL_BASE_PREFIX $HOME ; set -gx PATH $HOME/.cabal/bin /home/qxjit/.ghcup/bin $PATH # ghcup-env
+set -q GHCUP_INSTALL_BASE_PREFIX[1]; or set GHCUP_INSTALL_BASE_PREFIX $HOME ; set -gx PATH $HOME/.cabal/bin $PATH /home/qxjit/.ghcup/bin # ghcup-env

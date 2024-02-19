@@ -1,0 +1,4 @@
+theme = "qxjit"
+
+[editor]
+auto-pairs = false

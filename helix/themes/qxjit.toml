@@ -1,0 +1,11 @@
+inherits = "jellybeans"
+
+"ui.statusline" = { fg = "greentext",  bg = "verydark" }
+"ui.statusline.inactive" = { fg = "darktext", bg = "verydark" }
+
+[palette]
+background = "#080808"
+darktext = "#909090"
+purpletext = "#BFADEB"
+greentext = "#abcc55"
+verydark = "#0e0e0e"

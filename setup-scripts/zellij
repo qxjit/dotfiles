@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+set -e
+
+mkdir -p ~/.local/bin
+curl -L \
+  https://github.com/zellij-org/zellij/releases/download/v0.39.2/zellij-x86_64-unknown-linux-musl.tar.gz \
+  -o ~/.local/bin/zellij.tar.gz
+tar xfz ~/.local/bin/zellij.tar.gz -C ~/.local/bin
+rm ~/.local/bin/zellij.tar.gz
+chmod 755 ~/.local/bin/zellij

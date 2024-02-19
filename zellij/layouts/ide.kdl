@@ -1,0 +1,50 @@
+layout {
+    pane size=1 borderless=true {
+        plugin location="zellij:tab-bar"
+    }
+    pane split_direction="vertical" {
+        pane command="fish"
+        pane stacked=true {
+            pane command="qft"
+            pane command="hx"
+        }
+    }
+    pane size=2 borderless=true {
+        plugin location="zellij:status-bar"
+    }
+    swap_tiled_layout {
+        tab max_panes=5{
+            pane size=1 borderless=true {
+                plugin location="zellij:tab-bar"
+            }
+            pane split_direction="vertical" {
+                pane command="fish"
+                pane stacked=true {
+                    pane command="qft"
+                    pane command="hx"
+                }
+            }
+            pane size=2 borderless=true {
+                plugin location="zellij:status-bar"
+            }
+        }
+        tab {
+            pane size=1 borderless=true {
+                plugin location="zellij:tab-bar"
+            }
+            pane split_direction="vertical" {
+                pane split_direction="horizontal" {
+                    pane command="fish"
+                    pane
+                }
+                pane stacked=true {
+                    pane command="qft"
+                    pane command="hx"
+                }
+            }
+            pane size=2 borderless=true {
+                plugin location="zellij:status-bar"
+            }
+        }
+    }
+}

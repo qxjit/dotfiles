@@ -1,2 +1,17 @@
 #!/bin/sh
-exec tmux new -A -s dev nvim
+
+case $1 in
+  --new)
+    export EDITOR=hx
+    exec zellij attach -c dev
+    ;;
+
+  ide)
+    cd $2
+    zellij action new-tab --layout ide --name $(basename $2)
+    ;;
+
+  *)
+    exec tmux new -A -s dev nvim
+    ;;
+esac

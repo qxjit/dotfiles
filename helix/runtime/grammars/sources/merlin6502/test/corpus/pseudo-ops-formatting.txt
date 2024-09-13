@@ -1,0 +1,137 @@
+===================
+line of asterisks AST
+===================
+
+ AST 30
+ AST NUM
+
+---
+
+(source_file
+	(pseudo_operation (psop_ast) (arg_ast (num)))
+	(pseudo_operation (psop_ast) (arg_ast (label_ref (global_label)))))
+
+===================
+print cycles CYC
+===================
+
+ CYC
+ CYC OFF
+ CYC AVE
+ CYC FLAGS
+
+---
+
+(source_file
+	(pseudo_operation (psop_cyc))
+	(pseudo_operation (psop_cyc) (arg_cyc (enum)))
+	(pseudo_operation (psop_cyc) (arg_cyc (enum)))
+	(pseudo_operation (psop_cyc) (arg_cyc (enum))))
+
+===================
+Date stamp DAT
+===================
+
+ DAT
+
+---
+
+(source_file
+	(pseudo_operation (psop_dat)))
+
+===================
+Macro expand EXP
+===================
+
+ EXP ON
+ EXP OFF
+ EXP ONLY
+
+---
+
+(source_file
+	(pseudo_operation (psop_exp) (arg_exp (enum)))
+	(pseudo_operation (psop_exp) (arg_exp (enum)))
+	(pseudo_operation (psop_exp) (arg_exp (enum))))
+
+===================
+Listing LST
+===================
+
+ LST
+ LST ON
+ LST OFF
+ LST RTN
+
+---
+
+(source_file
+	(pseudo_operation (psop_lst))
+	(pseudo_operation (psop_lst) (arg_lst (enum)))
+	(pseudo_operation (psop_lst) (arg_lst (enum)))
+	(pseudo_operation (psop_lst) (arg_lst (enum))))
+
+===================
+List off areas LSTDO
+===================
+
+ LSTDO
+ LSTDO OFF
+
+---
+
+(source_file
+	(pseudo_operation (psop_lstdo))
+	(pseudo_operation (psop_lstdo) (arg_lstdo (enum))))
+
+===================
+new page PAG
+===================
+
+ PAG
+
+---
+
+(source_file
+	(pseudo_operation (psop_pag)))
+
+===================
+title heading TTL
+===================
+
+ TTL "Segment Title"
+ TTL &"Title in Quotes"&
+
+---
+
+(source_file
+	(pseudo_operation (psop_ttl) (arg_ttl (dstring)))
+    (pseudo_operation (psop_ttl) (arg_ttl (dstring))))
+
+===================
+skip lines SKP
+===================
+
+ SKP 5
+ SKP LINES+5+"a"
+
+---
+
+(source_file
+	(pseudo_operation (psop_skp) (arg_skp (num)))
+    (pseudo_operation (psop_skp) (arg_skp (binary_aexpr (binary_aexpr (label_ref (global_label)) (eop_plus) (num)) (eop_plus) (nchar)))))
+
+===================
+truncate TR
+===================
+
+ TR ON
+ TR OFF
+ TR ADR
+
+---
+
+(source_file
+	(pseudo_operation (psop_tr) (arg_tr (enum)))
+	(pseudo_operation (psop_tr) (arg_tr (enum)))
+	(pseudo_operation (psop_tr) (arg_tr (enum))))

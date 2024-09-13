@@ -1,0 +1,10 @@
+[[language]]
+name = "merlin6502"
+scope = "source.S"
+file-types = ["s","S","asm"]
+comment-token = ";"
+
+[[grammar]]
+name = "merlin6502"
+source = { git = "https://github.com/dfgordon/tree-sitter-merlin6502", rev = "c46aab78ce10d0335e1f59b0139af00bbe6b42c4" }
+

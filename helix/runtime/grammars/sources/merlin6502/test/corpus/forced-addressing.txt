@@ -1,0 +1,25 @@
+===================
+forced long
+===================
+
+ LDAL 16384
+ LDA >$4000
+
+---
+
+(source_file
+	(operation (op_lda (trailing)) (arg_lda (addr (num))))
+	(operation (op_lda) (arg_lda (addr (addr_prefix) (num)))))
+
+===================
+forced absolute
+===================
+
+ LDA: 10
+ LDA |10
+
+---
+
+(source_file
+	(operation (op_lda (trailing)) (arg_lda (addr (num))))
+	(operation (op_lda) (arg_lda (addr (addr_prefix) (num)))))

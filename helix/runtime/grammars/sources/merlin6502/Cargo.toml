@@ -1,0 +1,28 @@
+[package]
+name = "tree-sitter-merlin6502"
+description = "merlin6502 grammar for the tree-sitter parsing library"
+version = "3.0.1"
+keywords = ["incremental", "parsing", "merlin6502"]
+categories = ["parsing", "text-editors"]
+repository = "https://github.com/dfgordon/tree-sitter-merlin6502"
+homepage = "https://github.com/dfgordon/tree-sitter-merlin6502"
+readme = "README-crate.md"
+edition = "2018"
+license = "MIT"
+
+build = "bindings/rust/build.rs"
+include = [
+  "bindings/rust/*",
+  "grammar.js",
+  "queries/*",
+  "src/*",
+]
+
+[lib]
+path = "bindings/rust/lib.rs"
+
+[dependencies]
+tree-sitter = "0.22.4"
+
+[build-dependencies]
+cc = "1.0"

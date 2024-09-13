@@ -1,0 +1,116 @@
+===================
+place checksum CHK
+===================
+
+ CHK
+
+---
+
+(source_file
+	(pseudo_operation (psop_chk)))
+
+===================
+force error ERR
+===================
+
+ ERR ($300)-$80
+ ERR *-1/$4100
+ ERR \$5000
+
+---
+
+(source_file
+	(pseudo_operation (psop_err) (arg_err (ptr_check (num) (num))))
+	(pseudo_operation (psop_err) (arg_err (binary_aexpr (binary_aexpr (current_addr) (eop_minus) (num)) (eop_div) (num))))
+	(pseudo_operation (psop_err) (arg_err (num))))
+
+===================
+label from keyboard KBD
+===================
+
+OUTPUT KBD
+OUTPUT KBD "prompt"
+
+---
+
+(source_file
+	(pseudo_operation (label_def (global_label)) (psop_kbd))
+	(pseudo_operation (label_def (global_label)) (psop_kbd) (arg_kbd (dstring))))
+
+===================
+loop LUP and --^
+===================
+
+ LUP 4
+ ASL
+ --^
+
+---
+
+(source_file
+	(pseudo_operation (psop_lup) (arg_lup (num)))
+    (operation (op_asl))
+    (pseudo_operation (psop_end_lup)))
+
+===================
+long status MX
+===================
+
+ MX %00
+ MX %01
+ MX %10
+ MX %11
+ MX 3
+
+---
+
+(source_file
+	(pseudo_operation (psop_mx) (arg_mx (num)))
+	(pseudo_operation (psop_mx) (arg_mx (num)))
+	(pseudo_operation (psop_mx) (arg_mx (num)))
+	(pseudo_operation (psop_mx) (arg_mx (num)))
+	(pseudo_operation (psop_mx) (arg_mx (num))))
+
+===================
+pause PAU
+===================
+
+ PAU
+
+---
+
+(source_file
+	(pseudo_operation (psop_pau)))
+
+===================
+sweet 16 SW
+===================
+
+ SW
+
+---
+
+(source_file
+	(pseudo_operation (psop_sw)))
+
+===================
+user defined USR
+===================
+
+ USR A+B/C
+
+---
+
+(source_file
+	(pseudo_operation (psop_usr) (arg_usr (literal))))
+
+===================
+extended opcodes XC
+===================
+
+ XC
+
+---
+
+(source_file
+	(pseudo_operation (psop_xc)))

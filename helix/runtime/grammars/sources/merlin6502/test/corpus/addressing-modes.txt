@@ -1,0 +1,170 @@
+===================
+absolute
+===================
+
+ LDA 1000
+ LDA $4000
+
+---
+
+(source_file
+	(operation (op_lda) (arg_lda (addr (num))))
+	(operation (op_lda) (arg_lda (addr (num)))))
+
+===================
+absolute indexed indirect
+===================
+
+ JMP ($4000,X)
+
+---
+
+(source_file
+	(operation (op_jmp) (arg_jmp (iaddr_ix (mode) (num) (mode)))
+	)
+)
+
+===================
+absolute indexed x
+===================
+
+ LDA $4000,X
+
+---
+
+(source_file
+	(operation (op_lda) (arg_lda (addr_x (num) (mode)))))
+
+===================
+absolute indexed y
+===================
+
+ LDA $4000,Y
+
+---
+
+(source_file
+	(operation (op_lda) (arg_lda (addr_y (num) (mode)))))
+
+===================
+absolute indirect
+===================
+
+ LDA ($4000)
+
+---
+
+(source_file
+	(operation (op_lda) (arg_lda (iaddr (mode) (num) (mode)))))
+
+===================
+accumulator
+===================
+
+ INC
+
+---
+
+(source_file
+	(operation (op_inc)))
+
+===================
+block move
+===================
+
+ MVP $10,$20
+ MVN #$00,#^$01
+
+---
+
+ (source_file
+ 	(operation
+	 	(op_mvp) (arg_mvp
+		(xyc (data (num)) (data (num)))))
+ 	(operation
+	 	(op_mvn) (arg_mvn
+		(xyc (data (data_prefix) (num)) (data (data_prefix) (num)))))
+)
+
+===================
+direct/zp indirect indexed
+===================
+
+ LDA ($40),Y
+
+---
+
+ (source_file
+ 	(operation (op_lda) (arg_lda (iaddr_y (mode) (num) (mode)))))
+
+===================
+direct indirect long indexed
+===================
+
+ LDA [$40],Y
+
+---
+
+ (source_file
+ 	(operation (op_lda) (arg_lda (daddr_y (mode) (num) (mode)))))
+
+===================
+direct indirect long
+===================
+
+ LDA [$40]
+
+---
+
+ (source_file
+ 	(operation (op_lda) (arg_lda (daddr (mode) (num) (mode)))))
+
+===================
+immediate
+===================
+
+ LDA #$00
+ LDA #>ADDR+5
+
+---
+
+(source_file
+	(operation (op_lda) (arg_lda (imm (imm_prefix) (num))))
+	(operation (op_lda) (arg_lda (imm (imm_prefix) (binary_aexpr (label_ref (global_label)) (eop_plus) (num))))))
+
+===================
+implied
+===================
+
+ INX
+ INY
+ DEY
+ DEX
+
+---
+
+(source_file
+	(operation (op_inx))
+	(operation (op_iny))
+	(operation (op_dey))
+	(operation (op_dex)))
+
+===================
+stack
+===================
+
+ PHA
+ LDA (57,S),Y
+ ORA MYLAB,S
+
+---
+
+(source_file
+	(operation (op_pha))
+ 	(operation
+	 	(op_lda) (arg_lda
+		(iaddr_is_y (mode) (num) (mode) )))
+	(operation
+	 	(op_ora) (arg_ora
+		(addr_s (label_ref (global_label)) (mode) )))
+)

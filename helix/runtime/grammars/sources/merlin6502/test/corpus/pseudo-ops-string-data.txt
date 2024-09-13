@@ -1,0 +1,111 @@
+===================
+Ascii text ASC
+===================
+
+ ASC "STRING"
+ ASC 'string'
+ ASC "Bye,Bye",8D,9E
+
+---
+
+(source_file
+	(pseudo_operation (psop_asc) (arg_asc (dstring)))
+	(pseudo_operation (psop_asc) (arg_asc (dstring)))
+	(pseudo_operation (psop_asc) (arg_asc (dstring) (hex_data))))
+
+===================
+Dextral inverted DCI
+===================
+
+ DCI "STRING"
+ DCI 'string'
+ DCI "Hello",878D
+
+---
+
+(source_file
+	(pseudo_operation (psop_dci) (arg_dci (dstring)))
+	(pseudo_operation (psop_dci) (arg_dci (dstring)))
+	(pseudo_operation (psop_dci) (arg_dci (dstring) (hex_data))))
+
+===================
+Inverse INV
+===================
+
+ INV "STRING"
+ INV 'string'
+ INV "Hello",878D
+
+---
+
+(source_file
+	(pseudo_operation (psop_inv) (arg_inv (dstring)))
+	(pseudo_operation (psop_inv) (arg_inv (dstring)))
+	(pseudo_operation (psop_inv) (arg_inv (dstring) (hex_data))))
+
+===================
+Flashing FLS
+===================
+
+ FLS "STRING"
+ FLS 'string'
+ FLS "Hello",878D
+
+---
+
+(source_file
+	(pseudo_operation (psop_fls) (arg_fls (dstring)))
+	(pseudo_operation (psop_fls) (arg_fls (dstring)))
+	(pseudo_operation (psop_fls) (arg_fls (dstring) (hex_data))))
+
+===================
+Reverse REV
+===================
+
+ REV "STRING"
+ REV 'string'
+
+---
+
+(source_file
+	(pseudo_operation (psop_rev) (arg_rev (dstring)))
+	(pseudo_operation (psop_rev) (arg_rev (dstring))))
+
+===================
+Length byte STR
+===================
+
+ STR "/PATH/"
+ STR "HI"
+ STR 'HI',8D
+
+---
+
+(source_file
+	(pseudo_operation (psop_str) (arg_str (dstring)))
+	(pseudo_operation (psop_str) (arg_str (dstring)))
+	(pseudo_operation (psop_str) (arg_str (dstring) (hex_data))))
+
+=====================
+dstring-var collision
+=====================
+
+ ASC ]string~]
+ ASC ]9]
+ ASC ]1
+
+---
+
+(source_file
+	(pseudo_operation (psop_asc) (arg_asc (dstring)))
+	(pseudo_operation (psop_asc) (arg_asc (dstring)))
+	(pseudo_operation (psop_asc) (arg_asc (var_mac))))
+
+=====================
+dstring-var error
+:error
+=====================
+
+ ASC ]1]
+
+---

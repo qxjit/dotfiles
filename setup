@@ -10,7 +10,11 @@ fi
 ./setup-scripts/apt_packages
 ./setup-scripts/pip_packages
 ./setup-scripts/configure_git
+./setup-scripts/configure_flathub
+./setup-scripts/flathub_packages
+./setup-scripts/apparmor # ubuntu 24.04.2
 ./setup-scripts/docker
+./setup-scripts/docker-compose
 ./setup-scripts/rustup-init.sh
 ./setup-scripts/link_configs
 ./setup-scripts/vimstone

@@ -25,6 +25,8 @@ set fish_user_paths \
   $HOME/dotfiles/bin \
   $HOME/bin
 
+set -x XDG_DATA_DIRS "/home/qxjit/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:$XDG_DATA_DIRS"
+
 set -x DOCKER_HOST unix:///run/user/(id -u)/docker.sock
 
 set -q GHCUP_INSTALL_BASE_PREFIX[1]; or set GHCUP_INSTALL_BASE_PREFIX $HOME ; set -gx PATH $HOME/.cabal/bin $PATH /home/qxjit/.ghcup/bin # ghcup-env

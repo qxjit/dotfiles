@@ -15,6 +15,7 @@ sudo apt install \
   uidmap \
   fzf \
   xclip \
-  fuse \
-  curl
+  fuse3 \
+  curl \
+  flatpak
 

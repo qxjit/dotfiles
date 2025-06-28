@@ -3,6 +3,7 @@ name = "merlin6502"
 scope = "source.S"
 file-types = ["s","S","asm"]
 comment-token = ";"
+roots = []
 
 [[grammar]]
 name = "merlin6502"

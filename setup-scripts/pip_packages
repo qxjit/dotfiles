@@ -3,4 +3,4 @@
 set -e
 
 python3 -m venv ~/.python
-~/.python/pip3 install neovim-remote
+~/.python/bin/pip3 install neovim-remote

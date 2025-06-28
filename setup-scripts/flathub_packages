@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+set -e
+
+flatpak install flathub app.zen_browser.zen
+flatpak install flathub md.obsidian.Obsidian

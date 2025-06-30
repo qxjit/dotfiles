@@ -17,5 +17,6 @@ sudo apt install \
   xclip \
   fuse3 \
   curl \
-  flatpak
+  flatpak \
+  openssh-server
 

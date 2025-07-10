@@ -4,6 +4,7 @@ set -e
 
 sudo apt install \
   git \
+  gh \
   fish \
   ripgrep \
   jq \

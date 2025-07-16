@@ -24,4 +24,5 @@ fi
 ./setup-scripts/upterm
 ./setup-scripts/obsidian
 ./setup-scripts/tailscale
+./setup-scripts/nushell
 ./setup-scripts/manual_reminders

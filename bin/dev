@@ -1,17 +1,24 @@
-#!/bin/sh
+#!/usr/bin/env nu
 
-case $1 in
-  --new)
-    export EDITOR=hx
-    exec zellij attach -c dev
-    ;;
+def main [] {
+  help main
+}
 
-  ide)
-    cd $2
-    zellij action new-tab --layout ide --name $(basename $2)
-    ;;
+# Spawn or attach to a zellij dev session
+def "main t" [] {
+  $env.EDITOR = "hx"
+  exec zellij attach -c dev
+}
 
-  *)
-    exec tmux new -A -s dev nvim
-    ;;
-esac
+# Open go to a zellij tab for a specific project
+def "main o" [project: string] {
+  let tabs = zellij action query-tab-names
+
+  if ($tabs | lines | any { |it| $it ==  $project }) {
+    zellij action go-to-tab-name $project
+  } else { 
+    let dir = (glob ($env.HOME)/work/*/($project)).0
+    cd $dir
+    zellij action new-tab --layout ide --name $project
+  }
+}

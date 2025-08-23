@@ -2,5 +2,5 @@
 exec \
   upterm host \
   --server ssh://upterm.flipstone.com:38215 \
-  --force-command 'zellij attach -c dev' \
-  -- zellij attach -c dev
+  --force-command 'dev t' \
+  -- dev t

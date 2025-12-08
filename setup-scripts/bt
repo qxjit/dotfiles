@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+set -e
+
+mkdir -p ~/.local/bin
+curl -L \
+  https://github.com/LeperGnome/bt/releases/download/v1.2.2/bt-linux-amd64.tar.gz | \
+  tar xfz - -C ~/.local/bin
+
+chmod 755 ~/.local/bin/bt
+

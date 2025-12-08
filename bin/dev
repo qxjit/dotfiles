@@ -1,7 +1,11 @@
 #!/usr/bin/env nu
 
-def main [] {
-  help main
+# Open a file in the next pane, blindling assuming that it's helix.
+# This would have its own subcommand, but 'bt' won't successfully exec
+# the EDITOR as 'dev e'
+def main [path: string] {
+  zellij action focus-previous-pane
+  zellij action write-chars $":e ($path)\r"
 }
 
 # Spawn or attach to a zellij dev session
@@ -21,4 +25,10 @@ def "main o" [project: string] {
     cd $dir
     zellij action new-tab --layout ide --name $project
   }
+}
+
+# Launch a file tree configured to operate in conjuction with the zellij layout
+def "main file-tree" [] {
+  $env.EDITOR = "dev"
+  exec bt
 }

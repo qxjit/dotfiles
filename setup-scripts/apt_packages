@@ -20,5 +20,8 @@ sudo apt install \
   curl \
   flatpak \
   openssh-server \
-  htop
+  htop \
+  kitty \
+  libfuse2 \
+  flameshot
 

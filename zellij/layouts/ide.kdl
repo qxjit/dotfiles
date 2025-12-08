@@ -5,8 +5,10 @@ layout {
     pane split_direction="vertical" {
         pane command="fish"
         pane stacked=true {
-            pane command="qft"
             pane command="hx"
+            pane command="dev" {
+                args "file-tree"
+            }
         }
     }
     pane size=2 borderless=true {

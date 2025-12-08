@@ -241,7 +241,7 @@ pane_frames false
 //   - true (default)
 //   - false
 //
-// session_serialization false
+session_serialization false
 
 // Whether pane viewports are serialized along with the session, default is false
 // Options:
@@ -278,7 +278,7 @@ pane_frames false
 // Choose the theme that is specified in the themes section.
 // Default: default
 //
-// theme "default"
+theme "kanagawa"
 
 // The name of the default layout to load on startup
 // Default: "default"

@@ -5,7 +5,7 @@
 # the EDITOR as 'dev e'
 def main [path: string] {
   zellij action focus-previous-pane
-  zellij action write-chars $":e ($path)\r"
+  zellij action write-chars $":e ($path | str replace --all ' ' '\ ')\r"
 }
 
 # Spawn or attach to a zellij dev session

@@ -2,3 +2,4 @@ theme = "qxjit"
 
 [editor]
 auto-pairs = false
+lsp.enable = false

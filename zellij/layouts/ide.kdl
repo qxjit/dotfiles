@@ -15,15 +15,48 @@ layout {
         plugin location="zellij:status-bar"
     }
     swap_tiled_layout {
-        tab max_panes=5{
+        tab max_panes=4 {
             pane size=1 borderless=true {
                 plugin location="zellij:tab-bar"
             }
             pane split_direction="vertical" {
-                pane command="fish"
+                pane size="50%"
                 pane stacked=true {
-                    pane command="qft"
-                    pane command="hx"
+                    pane
+                    pane
+                }
+            }
+            pane size=2 borderless=true {
+                plugin location="zellij:status-bar"
+            }
+        }
+        tab max_panes=5 {
+            pane size=1 borderless=true {
+                plugin location="zellij:tab-bar"
+            }
+            pane split_direction="vertical" {
+                pane size="50%"
+                pane stacked=true {
+                    pane
+                    pane
+                    pane
+                }
+            }
+            pane size=2 borderless=true {
+                plugin location="zellij:status-bar"
+            }
+        }
+        tab max_panes=6 {
+            pane size=1 borderless=true {
+                plugin location="zellij:tab-bar"
+            }
+            pane split_direction="vertical" {
+                pane size="50%"
+                pane stacked=true {
+                    pane
+                    pane
+                    pane
+                    pane
                 }
             }
             pane size=2 borderless=true {
@@ -35,13 +68,13 @@ layout {
                 plugin location="zellij:tab-bar"
             }
             pane split_direction="vertical" {
-                pane split_direction="horizontal" {
-                    pane command="fish"
-                    pane
-                }
+                pane size="50%"
                 pane stacked=true {
-                    pane command="qft"
-                    pane command="hx"
+                    pane
+                    pane
+                    pane
+                    pane
+                    pane
                 }
             }
             pane size=2 borderless=true {

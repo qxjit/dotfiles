@@ -1,11 +1,16 @@
 #!/usr/bin/env nu
 
-# Open a file in the next pane, blindling assuming that it's helix.
-# This would have its own subcommand, but 'bt' won't successfully exec
-# the EDITOR as 'dev e'
+# Open a file in the helix pane on the same tab.
+# Finds helix by pane command rather than relying on layout position.
 def main [path: string] {
-  zellij action focus-previous-pane
-  zellij action write-chars $":e ($path | str replace --all ' ' '\ ')\r"
+  let tab = (zellij action current-tab-info --json | from json)
+  let panes = (zellij action list-panes --json | from json)
+  let hx_pane = ($panes | where is_plugin == false and tab_id == $tab.tab_id and terminal_command != null | where ($it.terminal_command | str starts-with "hx") | first)
+  let pane_id = $"terminal_($hx_pane.id)"
+
+  let escaped = ($path | str replace --all ' ' '\ ')
+  zellij action write-chars --pane-id $pane_id $":e ($escaped)"
+  zellij action write --pane-id $pane_id 13
 }
 
 # Spawn or attach to a zellij dev session
@@ -18,12 +23,31 @@ def "main t" [] {
 def "main o" [project: string] {
   let tabs = zellij action query-tab-names
 
-  if ($tabs | lines | any { |it| $it ==  $project }) {
-    zellij action go-to-tab-name $project
-  } else { 
-    let dir = (glob ($env.HOME)/work/*/($project)).0
-    cd $dir
-    zellij action new-tab --layout ide --name $project
+  # Resolve the tab name and directory to open
+  let resolved = if ($project | path exists) and (($project | path type) == "dir") {
+    let dir = ($project | path expand)
+    {name: ($dir | path basename), dir: $dir}
+  } else {
+    resolveProject $project
+  }
+
+  if ($tabs | lines | any { |it| $it == $resolved.name }) {
+    zellij action go-to-tab-name $resolved.name
+  } else {
+    cd $resolved.dir
+    zellij action new-tab --layout ide --name $resolved.name
+  }
+}
+
+def "main story branch" [story: string, branch:string ...projects: string] {
+  let storyDir = $"($env.HOME)/work/stories/($story)"
+  mkdir $storyDir
+  $projects | each { |project|
+    let resolved = resolveProject $project
+    cd $resolved.dir
+    git fetch
+    git worktree add $"($storyDir)/($project)" -b $branch origin/main
+    ./scripts/bootstrap
   }
 }
 
@@ -31,4 +55,14 @@ def "main o" [project: string] {
 def "main file-tree" [] {
   $env.EDITOR = "dev"
   exec bt
+}
+
+def resolveProject [project: string] {
+  let matches = (glob ($env.HOME)/work/*/($project))
+
+  if ($matches | is-empty) {
+    error make {msg: $"Could not find a project or directory matching '($project)'"}
+  }
+
+  {name: $project, dir: $matches.0}
 }

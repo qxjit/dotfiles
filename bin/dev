@@ -44,9 +44,14 @@ def "main story branch" [story: string, branch:string ...projects: string] {
   mkdir $storyDir
   $projects | each { |project|
     let resolved = resolveProject $project
+    let projectStoryDir = $"($storyDir)/($project)" 
+
     cd $resolved.dir
     git fetch
-    git worktree add $"($storyDir)/($project)" -b $branch origin/main
+    git worktree add $projectStoryDir -b $branch origin/main
+
+    cd $projectStoryDir
+
     ./scripts/bootstrap
   }
 }

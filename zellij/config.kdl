@@ -1,12 +1,24 @@
 // If you'd like to override the default keybindings completely, be sure to change "keybinds" to "keybinds clear-defaults=true"
 keybinds {
     normal {
-      bind "Alt r" { FocusNextPane; }
-      bind "Alt c" { FocusPreviousPane; }
-      bind "Alt s" {
-        // LaunchOrFocusPlugin "zellij:strider" { };
-        SwitchToMode "Normal"
-     }
+      bind "Alt o" { FocusPreviousPane; }
+      bind "Alt e" { FocusNextPane; }
+      bind "Alt h" { MoveFocus "Left"; }
+      bind "Alt t" { MoveFocus "Up"; }
+      bind "Alt n" { MoveFocus "Down"; }
+      bind "Alt s" { MoveFocus "Right"; }
+    }
+    resize {
+      bind "h" { Resize "Increase Left"; }
+      bind "t" { Resize "Increase Up"; }
+      bind "n" { Resize "Increase Down"; }
+      bind "s" { Resize "Increase Right"; }
+    }
+    tab {
+      bind "h" { GoToPreviousTab; }
+      bind "t" { MoveTab "Left"; }
+      bind "n" { MoveTab "Right"; }
+      bind "s" { GoToNextTab; }
     }
 }
 

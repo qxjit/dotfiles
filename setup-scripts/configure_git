@@ -4,3 +4,4 @@ set -e
 
 git config --global user.email "david@flipstone.com"
 git config --global user.name "David Vollbracht"
+git config --global merge.conflictstyle zdiff3

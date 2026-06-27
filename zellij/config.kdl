@@ -19,6 +19,7 @@ keybinds {
       bind "t" { MoveTab "Left"; }
       bind "n" { MoveTab "Right"; }
       bind "s" { GoToNextTab; }
+      bind "c" { NewTab; }
     }
 }
 

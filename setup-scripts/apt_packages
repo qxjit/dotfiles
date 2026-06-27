@@ -3,6 +3,7 @@
 set -e
 
 sudo apt install \
+  cinnamon \
   git \
   gh \
   fish \

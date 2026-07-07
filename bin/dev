@@ -64,16 +64,20 @@ def "main file-tree" [] {
 
 # Walk the change set and open $EDITOR on each newly-added comment, one at a
 # time. Saving/closing the editor advances to the next comment. Operates on the
-# staged change set by default; pass --unstaged for working-tree changes.
+# staged change set by default; pass --unstaged for tracked working-tree changes
+# or --untracked for new (not-ignored) files.
 # A run of adjacent comment lines (consecutive one-liners, or a single
 # multi-line block comment) counts as one comment and prompts once, at its
 # first line. Comments in each file are visited bottom-to-top so edits above
 # don't shift the line numbers of comments not yet visited.
 def "main comments" [
-  --unstaged  # edit comments from unstaged (working-tree) changes instead of staged
+  --unstaged   # edit comments from unstaged (tracked working-tree) changes instead of staged
+  --untracked  # edit comments from untracked, non-ignored files instead of staged
 ] {
   let root = (git rev-parse --show-toplevel | str trim)
-  let diff = (if $unstaged {
+  let diff = (if $untracked {
+    untrackedDiff $root
+  } else if $unstaged {
     git diff --unified=0 --no-color
   } else {
     git diff --cached --unified=0 --no-color
@@ -81,7 +85,7 @@ def "main comments" [
   let comments = (parseStagedComments $diff | groupConsecutive | sort-by file line --reverse)
 
   if ($comments | is-empty) {
-    let scope = (if $unstaged { "unstaged" } else { "staged" })
+    let scope = (if $untracked { "untracked" } else if $unstaged { "unstaged" } else { "staged" })
     print $"No comments found in the ($scope) change set."
     return
   }
@@ -159,6 +163,19 @@ def parseStagedComments [diff: string] {
   }
 
   $results
+}
+
+# Build a unified=0 diff for every untracked, non-ignored file by diffing each
+# against /dev/null, so the whole file reads as added lines. Paths are
+# repo-root relative to match `git diff` headers. Binary files produce a
+# "Binary files differ" line with no additions and are skipped naturally.
+def untrackedDiff [root: string] {
+  let files = (git -C $root ls-files --others --exclude-standard | lines | where { |f| $f | is-not-empty })
+  $files
+    | each { |f|
+        do { ^git -C $root diff --no-index --unified=0 --no-color -- /dev/null $f } | complete | get stdout
+      }
+    | str join ""
 }
 
 # Collapse runs of adjacent comment lines (same file, consecutive line

@@ -62,19 +62,27 @@ def "main file-tree" [] {
   exec bt
 }
 
-# Walk the staged change set and open $EDITOR on each newly-added comment,
-# one at a time. Saving/closing the editor advances to the next comment.
+# Walk the change set and open $EDITOR on each newly-added comment, one at a
+# time. Saving/closing the editor advances to the next comment. Operates on the
+# staged change set by default; pass --unstaged for working-tree changes.
 # A run of adjacent comment lines (consecutive one-liners, or a single
 # multi-line block comment) counts as one comment and prompts once, at its
 # first line. Comments in each file are visited bottom-to-top so edits above
 # don't shift the line numbers of comments not yet visited.
-def "main comments" [] {
+def "main comments" [
+  --unstaged  # edit comments from unstaged (working-tree) changes instead of staged
+] {
   let root = (git rev-parse --show-toplevel | str trim)
-  let diff = (git diff --cached --unified=0 --no-color)
+  let diff = (if $unstaged {
+    git diff --unified=0 --no-color
+  } else {
+    git diff --cached --unified=0 --no-color
+  })
   let comments = (parseStagedComments $diff | groupConsecutive | sort-by file line --reverse)
 
   if ($comments | is-empty) {
-    print "No comments found in the staged change set."
+    let scope = (if $unstaged { "unstaged" } else { "staged" })
+    print $"No comments found in the ($scope) change set."
     return
   }
 

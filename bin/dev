@@ -62,6 +62,158 @@ def "main file-tree" [] {
   exec bt
 }
 
+# Walk the staged change set and open $EDITOR on each newly-added comment,
+# one at a time. Saving/closing the editor advances to the next comment.
+# A run of adjacent comment lines (consecutive one-liners, or a single
+# multi-line block comment) counts as one comment and prompts once, at its
+# first line. Comments in each file are visited bottom-to-top so edits above
+# don't shift the line numbers of comments not yet visited.
+def "main comments" [] {
+  let root = (git rev-parse --show-toplevel | str trim)
+  let diff = (git diff --cached --unified=0 --no-color)
+  let comments = (parseStagedComments $diff | groupConsecutive | sort-by file line --reverse)
+
+  if ($comments | is-empty) {
+    print "No comments found in the staged change set."
+    return
+  }
+
+  let total = ($comments | length)
+  for i in 0..<$total {
+    let c = ($comments | get $i)
+    print $"Editing comment (($i + 1))/($total): ($c.file):($c.line)"
+    editCommentAt ($root | path join $c.file) $c.line
+  }
+}
+
+# Collect {file, line} for every added comment line in a staged diff produced
+# with `git diff --cached --unified=0`. Tracks block-comment state (e.g.
+# Haskell `{- -}`, C `/* */`, HTML `<!-- -->`) so interior lines that don't
+# begin with a marker are still recognized as comments.
+def parseStagedComments [diff: string] {
+  mut results = []
+  mut curFile = ""
+  mut syntax = (commentSyntaxFor "")
+  mut newLine = 0
+  mut inBlock = false
+  mut closeSeq = ""
+
+  for line in ($diff | lines) {
+    if ($line | str starts-with "+++ ") {
+      let p = ($line | str substring 4..)
+      let path = (if ($p | str starts-with "b/") { $p | str substring 2.. } else { $p })
+      $curFile = $path
+      $syntax = (commentSyntaxFor $path)
+      $inBlock = false
+      $closeSeq = ""
+    } else if ($line | str starts-with "@@") {
+      let m = ($line | parse --regex '@@ -\d+(?:,\d+)? \+(?<start>\d+)')
+      if not ($m | is-empty) {
+        $newLine = ($m.0.start | into int)
+      }
+      # Added lines within a hunk are contiguous; a block cannot span hunks.
+      $inBlock = false
+      $closeSeq = ""
+    } else if ($line | str starts-with "+++") {
+      # header safety net, no line consumed
+    } else if ($line | str starts-with "+") {
+      let content = ($line | str substring 1..)
+      let trimmed = ($content | str trim)
+      mut isCmt = false
+
+      if $inBlock {
+        $isCmt = true
+        if ($content | str contains $closeSeq) {
+          $inBlock = false
+          $closeSeq = ""
+        }
+      } else if ($trimmed | is-not-empty) and (not ($syntax.ignore | any { |p| $trimmed | str starts-with $p })) {
+        if ($syntax.line | any { |m| $trimmed | str starts-with $m }) {
+          $isCmt = true
+        } else {
+          let opens = ($syntax.blocks | where { |b| $trimmed | str starts-with $b.0 })
+          if ($opens | is-not-empty) {
+            $isCmt = true
+            let b = ($opens | first)
+            if not (($trimmed | str replace $b.0 "") | str contains $b.1) {
+              $inBlock = true
+              $closeSeq = $b.1
+            }
+          }
+        }
+      }
+
+      if $isCmt {
+        $results = ($results | append {file: $curFile, line: $newLine})
+      }
+      $newLine = $newLine + 1
+    }
+  }
+
+  $results
+}
+
+# Collapse runs of adjacent comment lines (same file, consecutive line
+# numbers) into a single {file, line} anchored at the run's first line.
+def groupConsecutive [] {
+  let rows = $in
+  mut groups = []
+  mut curFile = ""
+  mut startLine = 0
+  mut prevLine = 0
+
+  for r in $rows {
+    if ($r.file == $curFile) and ($r.line == ($prevLine + 1)) {
+      $prevLine = $r.line
+    } else {
+      if $curFile != "" {
+        $groups = ($groups | append {file: $curFile, line: $startLine})
+      }
+      $curFile = $r.file
+      $startLine = $r.line
+      $prevLine = $r.line
+    }
+  }
+
+  if $curFile != "" {
+    $groups = ($groups | append {file: $curFile, line: $startLine})
+  }
+
+  $groups
+}
+
+# Comment syntax keyed off the file extension: `line` leaders, `blocks` as
+# [open, close] pairs, and `ignore` prefixes that look like comment openers but
+# aren't (e.g. Haskell `{-#` pragmas).
+def commentSyntaxFor [path: string] {
+  let ext = ($path | path parse | get extension | str downcase)
+  match $ext {
+    "hs" => { line: ["--"], blocks: [["{-" "-}"]], ignore: ["{-#"] }
+    "elm" | "purs" => { line: ["--"], blocks: [["{-" "-}"]], ignore: [] }
+    "sql" | "lua" => { line: ["--"], blocks: [], ignore: [] }
+    "js" | "jsx" | "ts" | "tsx" | "mjs" | "cjs" | "go" | "rs" | "c" | "h" | "cpp" | "hpp" | "cc" | "java" | "scala" | "kt" | "kts" | "swift" | "php" | "cs" | "dart" | "zig" | "proto" => { line: ["//"], blocks: [["/*" "*/"]], ignore: [] }
+    "py" | "rb" | "sh" | "bash" | "zsh" | "fish" | "nu" | "yaml" | "yml" | "toml" | "cfg" | "ini" | "r" | "pl" | "pm" | "tf" => { line: ["#"], blocks: [], ignore: [] }
+    "css" | "scss" | "less" => { line: [], blocks: [["/*" "*/"]], ignore: [] }
+    "html" | "htm" | "xml" | "vue" | "svelte" | "md" => { line: [], blocks: [["<!--" "-->"]], ignore: [] }
+    "clj" | "cljs" | "el" | "lisp" | "scm" | "rkt" => { line: [";"], blocks: [], ignore: [] }
+    "vim" => { line: ['"'], blocks: [], ignore: [] }
+    _ => { line: ["#" "//" "--" ";"], blocks: [["/*" "*/"] ["{-" "-}"] ["<!--" "-->"]], ignore: ["{-#"] }
+  }
+}
+
+# Open $EDITOR at a specific line, using each editor's own jump syntax.
+def editCommentAt [file: string, line: int] {
+  let editor = ($env.EDITOR? | default "vi")
+  let base = ($editor | path basename)
+  match $base {
+    "hx" | "helix" | "kak" => { ^$editor $"($file):($line)" }
+    "vim" | "nvim" | "vi" | "nano" => { ^$editor $"+($line)" $file }
+    "emacs" | "emacsclient" => { ^$editor $"+($line)" $file }
+    "code" | "codium" => { ^$editor -g $"($file):($line)" -w }
+    _ => { ^$editor $file }
+  }
+}
+
 def resolveProject [project: string] {
   let matches = (glob ($env.HOME)/work/*/($project))
 

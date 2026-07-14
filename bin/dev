@@ -64,8 +64,11 @@ def "main file-tree" [] {
 
 # Walk the change set and open $EDITOR on each newly-added comment, one at a
 # time. Saving/closing the editor advances to the next comment. Operates on the
-# staged change set by default; pass --unstaged for tracked working-tree changes
-# or --untracked for new (not-ignored) files.
+# staged change set by default; pass --unstaged for tracked working-tree changes,
+# --untracked for new (not-ignored) files, or --amend for the most recent commit.
+# With --amend, the comments added in HEAD (per `git show`) are edited, then the
+# edited files are re-staged and `git commit --amend` runs so the fixes fold back
+# into that commit and the message can be reworded.
 # A run of adjacent comment lines (consecutive one-liners, or a single
 # multi-line block comment) counts as one comment and prompts once, at its
 # first line. Comments in each file are visited bottom-to-top so edits above
@@ -73,9 +76,13 @@ def "main file-tree" [] {
 def "main comments" [
   --unstaged   # edit comments from unstaged (tracked working-tree) changes instead of staged
   --untracked  # edit comments from untracked, non-ignored files instead of staged
+  --amend      # edit comments from the most recent commit, then re-stage and `git commit --amend`
 ] {
   let root = (git rev-parse --show-toplevel | str trim)
-  let diff = (if $untracked {
+  let diff = (if $amend {
+    # Drop the commit header/message with --format= so only the diff remains.
+    git show --format= --unified=0 --no-color HEAD
+  } else if $untracked {
     untrackedDiff $root
   } else if $unstaged {
     git diff --unified=0 --no-color
@@ -85,16 +92,23 @@ def "main comments" [
   let comments = (parseStagedComments $diff | groupConsecutive | sort-by file line --reverse)
 
   if ($comments | is-empty) {
-    let scope = (if $untracked { "untracked" } else if $unstaged { "unstaged" } else { "staged" })
+    let scope = (if $amend { "most recent commit" } else if $untracked { "untracked" } else if $unstaged { "unstaged" } else { "staged" })
     print $"No comments found in the ($scope) change set."
-    return
+  } else {
+    let total = ($comments | length)
+    for i in 0..<$total {
+      let c = ($comments | get $i)
+      print $"Editing comment (($i + 1))/($total): ($c.file):($c.line)"
+      editCommentAt ($root | path join $c.file) $c.line
+    }
   }
 
-  let total = ($comments | length)
-  for i in 0..<$total {
-    let c = ($comments | get $i)
-    print $"Editing comment (($i + 1))/($total): ($c.file):($c.line)"
-    editCommentAt ($root | path join $c.file) $c.line
+  # Fold the comment edits back into HEAD and let the user reword the message.
+  if $amend {
+    for f in ($comments | get file | uniq) {
+      git -C $root add -- $f
+    }
+    git -C $root commit --amend
   }
 }
 

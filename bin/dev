@@ -52,8 +52,495 @@ def "main story branch" [story: string, branch:string ...projects: string] {
 
     cd $projectStoryDir
 
+    # Point the branch at origin/<branch> rather than the origin/main it was cut
+    # from, so a plain `git push` publishes it under its own name. Written as
+    # config because --set-upstream-to requires the remote branch to already
+    # exist; until the first push, `git status` will show the upstream as gone.
+    git config $"branch.($branch).remote" origin
+    git config $"branch.($branch).merge" $"refs/heads/($branch)"
+
     ./scripts/bootstrap
   }
+}
+
+# Interactively clean up everything a story leaves behind: the worktrees each
+# project registered under ~/work/stories/<story>, every local or remote branch
+# named for the story, and the story directory itself. Worktrees whose directory
+# is already gone are simply unregistered, so this works the same whether or not
+# the story directory has already been removed by hand.
+def "main story cleanup" [story: string] {
+  if ($story | is-empty) or ($story | str contains "/") or ($story | str starts-with ".") {
+    error make {msg: $"'($story)' is not a usable story name"}
+  }
+
+  let storyDir = $"($env.HOME)/work/stories/($story)"
+  let worktrees = (storyWorktrees $storyDir)
+
+  if ($worktrees | is-empty) {
+    print $"No worktrees are registered under (tildify $storyDir)."
+  } else {
+    print $"($worktrees | length) worktree\(s\) registered under (tildify $storyDir):"
+  }
+  print ""
+
+  mut removed = 0
+  mut deleted = 0
+  mut deletedRemote = 0
+  # Branches answered for here are not raised again by the sweep below, so a
+  # deliberate "keep this one" is not re-litigated a screen later.
+  mut decided = []
+
+  for wt in $worktrees {
+    let onDisk = ($wt.path | path exists)
+    let dirty = ($onDisk and (worktreeIsDirty $wt.path))
+    let state = (if not $onDisk {
+      "directory already gone"
+    } else if $dirty {
+      "still on disk, HAS UNCOMMITTED CHANGES"
+    } else {
+      "still on disk, clean"
+    })
+
+    print $"  ($wt.project)  in (tildify $wt.repo)"
+    print $"    worktree: (tildify $wt.path) — ($state)"
+    if $wt.branch == null {
+      print $"    branch:   none \(detached HEAD\)"
+    } else {
+      print $"    branch:   ($wt.branch) — (describeBranch $wt.repo $wt.branch)"
+    }
+
+    let answer = (if $wt.branch == null {
+      promptChoice ["y" "s" "q"] "    Unregister worktree? [y]es [s]kip [q]uit: "
+    } else {
+      promptChoice ["y" "w" "s" "q"] "    [y] worktree + branch  [w] worktree only  [s]kip  [q]uit: "
+    })
+
+    if $answer == "q" {
+      print ""
+      print $"Unregistered ($removed) worktree\(s\), deleted ($deleted) branch\(es\)."
+      print $"Quit early, so (tildify $storyDir) was left alone."
+      return
+    }
+
+    if $wt.branch != null {
+      $decided = ($decided | append $"($wt.repo)|($wt.branch)")
+    }
+
+    if $answer != "s" {
+      if (removeWorktree $wt.repo $wt.path $dirty) {
+        $removed = $removed + 1
+
+        if $answer == "y" and $wt.branch != null {
+          if (deleteBranch $wt.repo $wt.branch) {
+            $deleted = $deleted + 1
+          }
+        }
+      }
+    }
+
+    print ""
+  }
+
+  # Branches named for the story but not accounted for above: left over from a
+  # worktree deleted by hand, cut outside `story branch`, or pushed and then
+  # abandoned. Deletions on the remote are reconciled first, so what shows up
+  # here still exists; branches pushed by someone else and never fetched do not
+  # appear at all, since finding those would mean fetching all 60-odd repos.
+  let strays = (storyBranches $story $decided)
+
+  if ($strays | is-not-empty) {
+    print $"($strays | length) other branch\(es\) named for ($story):"
+    print ""
+  }
+
+  for b in $strays {
+    print $"  ($b.name)  in (tildify $b.repo)"
+    if $b.local {
+      print $"    local:    (describeBranch $b.repo $b.name)"
+    } else if $b.localHeld {
+      print $"    local:    still present, kept earlier in this run"
+    }
+    for r in $b.remotes {
+      print $"    remote:   ($r)/($b.name) — (describeRemoteBranch $b.repo $r $b.name)"
+    }
+
+    let bothActionable = ($b.local and ($b.remotes | is-not-empty))
+    let answer = (if $bothActionable {
+      promptChoice ["b" "l" "r" "s" "q"] "    [b] local + remote  [l] local only  [r] remote only  [s]kip  [q]uit: "
+    } else if $b.local {
+      promptChoice ["y" "s" "q"] "    Delete local branch? [y]es [s]kip [q]uit: "
+    } else {
+      promptChoice ["y" "s" "q"] $"    Delete ($b.remotes | str join ', ') copy \(pushes a deletion\)? [y]es [s]kip [q]uit: "
+    })
+
+    if $answer == "q" {
+      print ""
+      print $"Unregistered ($removed) worktree\(s\), deleted ($deleted) local and ($deletedRemote) remote branch\(es\)."
+      print $"Quit early, so (tildify $storyDir) was left alone."
+      return
+    }
+
+    let killLocal = ($b.local and ($answer in ["b" "l"] or ($answer == "y" and not $bothActionable)))
+    let killRemote = (($b.remotes | is-not-empty) and ($answer in ["b" "r"] or ($answer == "y" and not $b.local)))
+
+    if $killLocal and (deleteBranch $b.repo $b.name) {
+      $deleted = $deleted + 1
+    }
+
+    if $killRemote {
+      for r in $b.remotes {
+        if (deleteRemoteBranch $b.repo $r $b.name) {
+          $deletedRemote = $deletedRemote + 1
+        }
+      }
+    }
+
+    print ""
+  }
+
+  print $"Unregistered ($removed) worktree\(s\), deleted ($deleted) local and ($deletedRemote) remote branch\(es\)."
+
+  # Whatever is left in the story directory is not tracked by git -- notes,
+  # build artifacts, worktrees the user chose to keep -- so list it before
+  # asking, rather than quietly deleting it along with the empty husks.
+  if ($storyDir | path exists) {
+    let leftovers = (ls --all --short-names $storyDir | get name | sort)
+
+    print ""
+    if ($leftovers | is-empty) {
+      print $"(tildify $storyDir) is now empty."
+    } else {
+      print $"(tildify $storyDir) still contains:"
+      for l in $leftovers { print $"    ($l)" }
+    }
+
+    # Deleting the directory out from under a worktree that is still registered
+    # just recreates the stale entries this command exists to clear.
+    let stillRegistered = (storyWorktrees $storyDir)
+    if ($stillRegistered | is-not-empty) {
+      print $"  ! ($stillRegistered | length) worktree\(s\) here are still registered; deleting now would strand them."
+    }
+
+    if (promptChoice ["y" "n"] $"  Delete (tildify $storyDir)? [y/n]: ") == "y" {
+      rm -rf $storyDir
+      print $"  ✓ deleted (tildify $storyDir)"
+    }
+  }
+}
+
+# Every main repository under ~/work. Linked worktrees are skipped: they report
+# the same worktrees and the same refs as the repository they belong to, which
+# would double-count every entry.
+def workRepos [] {
+  glob $"($env.HOME)/work/*/*" --no-file --no-symlink
+    | where { |repo| not ($repo | str starts-with $"($env.HOME)/work/stories/") }
+    | where { |repo| ($repo | path join ".git" | path exists) and (($repo | path join ".git" | path type) == "dir") }
+}
+
+# Every registered worktree, across every project in ~/work, that lives inside
+# the given story directory.
+def storyWorktrees [storyDir: string] {
+  workRepos
+    | each { |repo| repoWorktreesUnder $repo $"($storyDir)/" }
+    | flatten
+    | sort-by project
+}
+
+# Every branch named for the story, local or remote, that the worktree pass did
+# not already settle. `decided` holds "<repo>|<branch>" keys answered there; a
+# decided branch still surfaces if it has remote copies, since removing a
+# worktree says nothing about what is sitting on the remote.
+def storyBranches [story: string, decided: list<string>] {
+  let repos = (workRepos)
+  let found = ($repos | each { |repo| repoStoryBranches $repo $story $decided } | flatten)
+
+  # A remote-tracking ref outlives the branch it points at until something
+  # prunes it, so half these hits can be branches that were deleted on the
+  # remote long ago. Only the remote knows which, and asking costs a network
+  # round trip -- so ask just the repos that actually matched, not all 60.
+  let pairs = ($found
+    | each { |b| $b.remotes | each { |r| {repo: $b.repo, remote: $r} } }
+    | flatten
+    | uniq)
+
+  if ($pairs | is-empty) {
+    return ($found | sort-by repo name)
+  }
+
+  print $"Pruning stale remote refs in ($pairs | get repo | uniq | length) repo\(s\)..."
+  for p in $pairs { pruneRemote $p.repo $p.remote }
+
+  # Repos with no remote hits cannot have been changed by a prune, so only the
+  # ones just contacted are worth reading a second time.
+  let pruned = ($pairs | get repo | uniq)
+
+  $found
+    | where { |b| not ($b.repo in $pruned) }
+    | append ($pruned | each { |repo| repoStoryBranches $repo $story $decided } | flatten)
+    | sort-by repo name
+}
+
+# Failure here is usually a remote that cannot be reached at all -- no VPN, no
+# network. That is not fatal: the stale refs simply stay listed, so say so
+# rather than dropping branches that might be real.
+def pruneRemote [repo: string, remote: string] {
+  let result = (do { ^git -C $repo remote prune $remote } | complete)
+
+  if $result.exit_code != 0 {
+    print $"  ! could not reach ($remote) for (tildify $repo); its refs may be stale"
+    return
+  }
+
+  # Pruning is per-remote, not per-story, so this also clears dead refs left by
+  # unrelated work. Harmless -- they point at branches the remote no longer has
+  # -- but report the count rather than rewriting refs silently.
+  let cleared = ($result.stdout | lines | where { |l| $l | str contains "[pruned]" } | length)
+
+  if $cleared > 0 {
+    print $"  pruned ($cleared) dead ref\(s\) in (tildify $repo)"
+  }
+}
+
+def repoStoryBranches [repo: string, story: string, decided: list<string>] {
+  let refs = (do { ^git -C $repo for-each-ref --format="%(refname)" refs/heads refs/remotes } | complete)
+
+  if $refs.exit_code != 0 {
+    return []
+  }
+
+  let parsed = ($refs.stdout | lines | each { |ref| parseRef $ref } | compact)
+  let locals = ($parsed | where kind == "local" | get name | where { |n| isStoryBranch $n $story })
+  let remotes = ($parsed | where kind == "remote" | where { |r| isStoryBranch $r.name $story })
+
+  $locals
+    | append ($remotes | get name)
+    | uniq
+    | each { |name|
+        let held = ($"($repo)|($name)" in $decided)
+        let copies = ($remotes | where name == $name | get remote)
+
+        # A branch settled during the worktree pass with nothing on any remote
+        # is finished business; asking about it again would be noise.
+        if $held and ($copies | is-empty) {
+          null
+        } else {
+          {
+            repo: $repo,
+            name: $name,
+            local: ((not $held) and ($name in $locals)),
+            localHeld: ($held and ($name in $locals)),
+            remotes: $copies,
+          }
+        }
+      }
+    | compact
+}
+
+# refs/heads/<name> and refs/remotes/<remote>/<name>, split on the first path
+# component so branch names containing slashes survive intact. origin/HEAD is a
+# symbolic pointer at the default branch, not a branch anyone can delete.
+def parseRef [ref: string] {
+  if ($ref | str starts-with "refs/heads/") {
+    {kind: "local", remote: null, name: ($ref | str substring 11..)}
+  } else if ($ref | str starts-with "refs/remotes/") {
+    let parts = ($ref | str substring 13.. | split row "/")
+
+    if (($parts | length) < 2) or (($parts | skip 1 | str join "/") == "HEAD") {
+      null
+    } else {
+      {kind: "remote", remote: ($parts | first), name: ($parts | skip 1 | str join "/")}
+    }
+  } else {
+    null
+  }
+}
+
+# Story numbers are not safe string prefixes of one another -- sc-2268 leads
+# sc-22685 -- so only the whole story segment counts as a match.
+def isStoryBranch [name: string, story: string] {
+  ($name == $story) or ($name | str starts-with $"($story)/")
+}
+
+# Parse `git worktree list --porcelain` for one repository, keeping only the
+# worktrees under `prefix`. Records are blank-line separated; each has a
+# `worktree <path>` line plus either `branch refs/heads/<name>` or `detached`.
+def repoWorktreesUnder [repo: string, prefix: string] {
+  let listed = (do { ^git -C $repo worktree list --porcelain } | complete)
+
+  if $listed.exit_code != 0 {
+    return []
+  }
+
+  $listed.stdout
+    | split row "\n\n"
+    | each { |record|
+        let fields = ($record | lines | where { |l| $l | is-not-empty })
+        let path = ($fields | where { |l| $l | str starts-with "worktree " } | each { |l| $l | str substring 9.. } | get 0?)
+        let branchRef = ($fields | where { |l| $l | str starts-with "branch " } | each { |l| $l | str substring 7.. } | get 0?)
+
+        if ($path == null) or (not ($path | str starts-with $prefix)) {
+          null
+        } else {
+          {
+            repo: $repo,
+            project: ($path | path basename),
+            path: $path,
+            branch: (if $branchRef == null { null } else { $branchRef | str replace "refs/heads/" "" }),
+          }
+        }
+      }
+    | compact
+}
+
+# How far a branch has drifted from the mainline and from its remote, so the
+# choice to delete it can be made without leaving the prompt.
+def describeBranch [repo: string, branch: string] {
+  let base = (baseRef $repo)
+  let ahead = (if $base == null { null } else { commitCount $repo $"($base)..($branch)" })
+  let upstream = (remoteCounterpart $repo $branch $base)
+  let unpushed = (if $upstream == null { null } else { commitCount $repo $"($upstream)..($branch)" })
+
+  let vsBase = (if $ahead == null {
+    "no mainline to compare against"
+  } else if $ahead == 0 {
+    $"fully merged into ($base)"
+  } else {
+    $"($ahead) commit\(s\) not in ($base)"
+  })
+
+  let vsRemote = (if $upstream == null {
+    "never pushed"
+  } else if $unpushed == 0 {
+    $"pushed to ($upstream)"
+  } else {
+    $"($unpushed) commit\(s\) NOT pushed to ($upstream)"
+  })
+
+  $"($vsBase), ($vsRemote)"
+}
+
+def baseRef [repo: string] {
+  ["origin/main" "origin/master" "main" "master"]
+    | where { |r| refExists $repo $r }
+    | get 0?
+}
+
+# The remote branch that would hold this work if it were pushed. `story branch`
+# builds story branches off origin/main, which leaves them tracking origin/main
+# rather than a branch of their own -- an upstream that says nothing about
+# whether the work survives deletion -- so that case falls through to looking
+# for a remote branch of the same name.
+def remoteCounterpart [repo: string, branch: string, base: any] {
+  let result = (do { ^git -C $repo rev-parse --abbrev-ref --symbolic-full-name $"($branch)@{upstream}" } | complete)
+  let upstream = (if $result.exit_code == 0 { $result.stdout | str trim } else { null })
+
+  if ($upstream != null) and ($upstream != $base) {
+    $upstream
+  } else if (refExists $repo $"origin/($branch)") {
+    $"origin/($branch)"
+  } else {
+    null
+  }
+}
+
+def describeRemoteBranch [repo: string, remote: string, name: string] {
+  let base = (baseRef $repo)
+  let ahead = (if $base == null { null } else { commitCount $repo $"($base)..($remote)/($name)" })
+
+  if $ahead == null {
+    "no mainline to compare against"
+  } else if $ahead == 0 {
+    $"fully merged into ($base)"
+  } else {
+    $"($ahead) commit\(s\) not in ($base)"
+  }
+}
+
+def refExists [repo: string, ref: string] {
+  (do { ^git -C $repo rev-parse --verify --quiet $ref } | complete).exit_code == 0
+}
+
+def commitCount [repo: string, range: string] {
+  let result = (do { ^git -C $repo rev-list --count $range } | complete)
+
+  if $result.exit_code == 0 { $result.stdout | str trim | into int } else { null }
+}
+
+def worktreeIsDirty [path: string] {
+  let result = (do { ^git -C $path status --porcelain } | complete)
+
+  ($result.exit_code == 0) and (($result.stdout | str trim) | is-not-empty)
+}
+
+# `git worktree remove` prunes an already-deleted directory happily, but refuses
+# a live one holding uncommitted work. Forcing past that destroys the work, so
+# make it a separate, explicit decision rather than a flag on the first answer.
+def removeWorktree [repo: string, path: string, dirty: bool] {
+  let result = (do { ^git -C $repo worktree remove $path } | complete)
+
+  if $result.exit_code == 0 {
+    print "    ✓ unregistered worktree"
+    return true
+  }
+
+  print $"    ! ($result.stderr | str trim)"
+
+  if $dirty and ((promptChoice ["y" "n"] "    Force removal, discarding those changes? [y/n]: ") == "y") {
+    let forced = (do { ^git -C $repo worktree remove --force $path } | complete)
+
+    if $forced.exit_code == 0 {
+      print "    ✓ unregistered worktree \(forced)"
+      return true
+    }
+
+    print $"    ! ($forced.stderr | str trim)"
+  }
+
+  false
+}
+
+# -D rather than -d: the prompt already showed the unmerged and unpushed counts,
+# so a refusal here would only re-litigate a decision the user just made.
+def deleteBranch [repo: string, branch: string] {
+  let result = (do { ^git -C $repo branch -D $branch } | complete)
+
+  if $result.exit_code == 0 {
+    print $"    ✓ deleted branch ($branch)"
+    true
+  } else {
+    print $"    ! ($result.stderr | str trim)"
+    false
+  }
+}
+
+# Unlike everything else here this reaches past the machine, so it names the
+# remote it is about to change in both the prompt and the confirmation.
+def deleteRemoteBranch [repo: string, remote: string, name: string] {
+  let result = (do { ^git -C $repo push $remote --delete $name } | complete)
+
+  if $result.exit_code == 0 {
+    print $"    ✓ deleted ($remote)/($name) on ($remote)"
+    true
+  } else {
+    print $"    ! ($result.stderr | str trim)"
+    false
+  }
+}
+
+def promptChoice [choices: list<string>, prompt: string] {
+  loop {
+    let answer = (input $prompt | str trim | str downcase)
+
+    if $answer in $choices {
+      return $answer
+    }
+
+    print $"    Please answer one of: ($choices | str join ', ')"
+  }
+}
+
+def tildify [path: string] {
+  $path | str replace $env.HOME "~"
 }
 
 # Launch a file tree configured to operate in conjuction with the zellij layout

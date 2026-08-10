@@ -23,12 +23,13 @@ def "main t" [] {
 def "main o" [project: string] {
   let tabs = zellij action query-tab-names
 
-  # Resolve the tab name and directory to open
-  let resolved = if ($project | path exists) and (($project | path type) == "dir") {
-    let dir = ($project | path expand)
-    {name: ($dir | path basename), dir: $dir}
+  # Only using directory target if the project argument looks like a path.
+  # Otherwise try to resolve it as a bare project name and only fall back
+  # to directory if that is unsuccessful
+  let resolved = if (looksLikePath $project) {
+    directoryTarget $project
   } else {
-    resolveProject $project
+    try { resolveProject $project } catch { directoryTarget $project }
   }
 
   if ($tabs | lines | any { |it| $it == $resolved.name }) {
@@ -748,4 +749,22 @@ def resolveProject [project: string] {
   }
 
   {name: $project, dir: $matches.0}
+}
+
+# Whether the argument was written as a path rather than a bare project name.
+def looksLikePath [project: string] {
+  ($project | str contains "/") or ($project | str starts-with "~") or ($project in [".", ".."])
+}
+
+# A directory named on the command line, resolved to the tab name and directory
+# to open. Errors rather than falling back to a project lookup, so a mistyped
+# path is reported as itself instead of being hunted for under ~/work.
+def directoryTarget [path: string] {
+  if not (($path | path exists) and (($path | path type) == "dir")) {
+    error make {msg: $"Could not find a project or directory matching '($path)'"}
+  }
+
+  let dir = ($path | path expand)
+
+  {name: ($dir | path basename), dir: $dir}
 }

@@ -66,9 +66,10 @@ def "main story branch" [story: string, branch:string ...projects: string] {
 
 # Interactively clean up everything a story leaves behind: the worktrees each
 # project registered under ~/work/stories/<story>, every local or remote branch
-# named for the story, and the story directory itself. Worktrees whose directory
-# is already gone are simply unregistered, so this works the same whether or not
-# the story directory has already been removed by hand.
+# named for the story, whatever `dev review` recorded against those worktrees, and
+# the story directory itself. Worktrees whose directory is already gone are simply
+# unregistered, so this works the same whether or not the story directory has
+# already been removed by hand.
 def "main story cleanup" [story: string] {
   if ($story | is-empty) or ($story | str contains "/") or ($story | str starts-with ".") {
     error make {msg: $"'($story)' is not a usable story name"}
@@ -76,6 +77,7 @@ def "main story cleanup" [story: string] {
 
   let storyDir = $"($env.HOME)/work/stories/($story)"
   let worktrees = (storyWorktrees $storyDir)
+  let db = (reviewDb)
 
   if ($worktrees | is-empty) {
     print $"No worktrees are registered under (tildify $storyDir)."
@@ -130,6 +132,10 @@ def "main story cleanup" [story: string] {
     if $answer != "s" {
       if (removeWorktree $wt.repo $wt.path $dirty) {
         $removed = $removed + 1
+
+        # Review state is keyed by the worktree's own path, so once the worktree
+        # is gone those rows can never match a hunk again.
+        forgetWorktreeReviews $db $wt.path
 
         if $answer == "y" and $wt.branch != null {
           if (deleteBranch $wt.repo $wt.branch) {
@@ -225,6 +231,14 @@ def "main story cleanup" [story: string] {
     if (promptChoice ["y" "n"] $"  Delete (tildify $storyDir)? [y/n]: ") == "y" {
       rm -rf $storyDir
       print $"  ✓ deleted (tildify $storyDir)"
+
+      # Anything still recorded under here belongs to a worktree that went away by
+      # hand rather than through this command.
+      let orphaned = (forgetReviewsUnder $db $storyDir)
+
+      if $orphaned > 0 {
+        print $"  ✓ forgot ($orphaned) reviewed line\(s\) recorded under it"
+      }
     }
   }
 }
@@ -550,186 +564,820 @@ def "main file-tree" [] {
   exec bt
 }
 
-# Walk the change set and open $EDITOR on each newly-added comment, one at a
-# time. Saving/closing the editor advances to the next comment. Operates on the
-# staged change set by default; pass --unstaged for tracked working-tree changes,
-# --untracked for new (not-ignored) files, or --amend for the most recent commit.
-# With --amend, the comments added in HEAD (per `git show`) are edited, then the
-# edited files are re-staged and `git commit --amend` runs so the fixes fold back
-# into that commit and the message can be reworded.
-# A run of adjacent comment lines (consecutive one-liners, or a single
-# multi-line block comment) counts as one comment and prompts once, at its
-# first line. Comments in each file are visited bottom-to-top so edits above
-# don't shift the line numbers of comments not yet visited.
-def "main comments" [
-  --unstaged   # edit comments from unstaged (tracked working-tree) changes instead of staged
-  --untracked  # edit comments from untracked, non-ignored files instead of staged
-  --amend      # edit comments from the most recent commit, then re-stage and `git commit --amend`
+# Walk the change set one hunk at a time: show the hunk, then mark it reviewed,
+# defer it, or open $EDITOR on it and choose again. Operates on the staged change
+# set by default; pass --unstaged for tracked working-tree changes, --untracked
+# for new (not-ignored) files, or --amend for the most recent commit. With
+# --amend, the hunks of HEAD (per `git show`) are shown, and if anything was
+# edited the touched files are re-staged and `git commit --amend` runs so the
+# fixes fold back into that commit and the message can be reworded.
+#
+# What has been reviewed is remembered in ~/.local/state/dev/review.db, a line at
+# a time rather than a hunk at a time: each added or removed line is keyed by the
+# repository, the file, the text of the line and which copy of that text it is in
+# the file. Nothing positional goes in, so a change stays reviewed when it slides
+# up or down the file, when the lines around it are rewritten, and when git draws
+# the hunk boundaries somewhere else -- all of which happen constantly in a tree
+# still being worked on. A hunk is skipped only when every line it changes has
+# been reviewed; add one line to a hunk answered for earlier and it comes back
+# with that line colored and the rest dimmed.
+#
+# Fixing a hunk from the prompt doesn't count as new work: an edited hunk is
+# recorded both as it was shown and as it reads afterwards. Deferring is per-run:
+# deferred hunks are listed at the end and come back next time.
+#
+# `review forget` throws that record away for the files under the current
+# directory, and `story cleanup` throws away what belongs to the worktrees it
+# removes.
+#
+# Hunks in each file are visited bottom-to-top so edits above don't shift the
+# line numbers of hunks not yet visited.
+def "main review" [
+  --unstaged   # review hunks from unstaged (tracked working-tree) changes instead of staged
+  --untracked  # review hunks from untracked, non-ignored files instead of staged
+  --amend      # review hunks from the most recent commit, then re-stage and `git commit --amend`
 ] {
   let root = (git rev-parse --show-toplevel | str trim)
+
+  # Which commit this is, since with `review branch` the answer is a different one
+  # each time the prompt comes back.
+  if $amend {
+    printCommit $root
+  }
+  let scope = (if $amend { "most recent commit" } else if $untracked { "untracked" } else if $unstaged { "unstaged" } else { "staged" })
   let diff = (if $amend {
     # Drop the commit header/message with --format= so only the diff remains.
-    git show --format= --unified=0 --no-color HEAD
+    git show --format= --no-color HEAD
   } else if $untracked {
     untrackedDiff $root
   } else if $unstaged {
-    git diff --unified=0 --no-color
+    git diff --no-color
   } else {
-    git diff --cached --unified=0 --no-color
+    git diff --cached --no-color
   })
-  let comments = (parseStagedComments $diff | groupConsecutive | sort-by file line --reverse)
 
-  if ($comments | is-empty) {
-    let scope = (if $amend { "most recent commit" } else if $untracked { "untracked" } else if $unstaged { "unstaged" } else { "staged" })
-    print $"No comments found in the ($scope) change set."
+  let parsed = (parseHunks $diff)
+  # A hunk that removes a file has nothing left on disk to show or edit.
+  let gone = ($parsed | where file == "/dev/null" | length)
+  let hunks = ($parsed | where file != "/dev/null" | keyHunks $root)
+
+  # How to re-read a file that gets edited mid-review. A fix lands in the working
+  # tree, so each mode compares against whatever will be the "before" side once
+  # that fix is staged, or amended in: for staged review that is HEAD, since the
+  # fix has to be added before it counts as staged.
+  let rebase = (if $amend {
+    ["HEAD^" "--"]
+  } else if $untracked {
+    ["--no-index" "--" "/dev/null"]
+  } else if $unstaged {
+    ["--"]
   } else {
-    let total = ($comments | length)
-    for i in 0..<$total {
-      let c = ($comments | get $i)
-      print $"Editing comment (($i + 1))/($total): ($c.file):($c.line)"
-      editCommentAt ($root | path join $c.file) $c.line
+    ["HEAD" "--"]
+  })
+
+  if ($hunks | is-empty) and $gone == 0 {
+    print $"No hunks found in the ($scope) change set."
+    return
+  }
+
+  let db = (reviewDb)
+  let known = (reviewedKeys $db $root)
+  # A hunk is settled only when every line it changes has been reviewed. One new
+  # line in a hunk that was reviewed before brings the hunk back, with the lines
+  # already answered for dimmed so the new one is the part that stands out.
+  let pending = ($hunks | markSeen $known | where newCount > 0 | sort-by file line --reverse)
+  let alreadyReviewed = (($hunks | length) - ($pending | length))
+  let total = ($pending | length)
+
+  if $alreadyReviewed > 0 {
+    print $"Skipping ($alreadyReviewed) hunk\(s\) reviewed earlier."
+  }
+  if $gone > 0 {
+    print $"Skipping ($gone) hunk\(s\) in deleted files."
+  }
+  if $total == 0 {
+    print $"Nothing left to review in the ($scope) change set."
+    return
+  }
+
+  mut reviewed = 0
+  mut deferred = []
+  mut edited = []
+  mut quit = false
+
+  for i in 0..<$total {
+    if $quit { break }
+
+    let h = ($pending | get $i)
+    let label = (if $h.newCount == ($h.keys | length) {
+      $"Hunk (($i + 1))/($total)  ($h.file):($h.line)"
+    } else {
+      $"Hunk (($i + 1))/($total)  ($h.file):($h.line)  \(($h.newCount) of ($h.keys | length) changed lines are new\)"
+    })
+
+    showHunk $h $label
+
+    # Never auto-mark a line belonging to a hunk still queued to be asked about;
+    # see editedHunks for what would otherwise reach past the hunk being edited.
+    let queued = ($pending | where line != $h.line or file != $h.file | get keys | flatten)
+    mut hunkEdited = false
+
+    # Editing re-asks rather than deciding for the user: what to make of the
+    # hunk is usually clearer after the fix than before it.
+    loop {
+      let answer = (promptChoice ["r" "d" "e" "s" "q"] "  [r]eviewed  [d]efer  [e]dit  [s]how again  [q]uit: ")
+
+      if $answer == "e" {
+        editFileAt ($root | path join $h.file) $h.line
+        $edited = ($edited | append $h.file)
+        $hunkEdited = true
+
+        # A full-screen editor takes the diff off the screen on its way out, so
+        # the hunk is shown again -- as it now reads, not as it was.
+        showEdited $root $h $rebase $label $known
+      } else if $answer == "s" {
+        if $hunkEdited {
+          showEdited $root $h $rebase $label $known
+        } else {
+          showHunk $h $label
+        }
+      } else if $answer == "r" {
+        recordReviewed $db $root $h.file $h.keys
+
+        # An edited hunk is recorded twice: as it was shown, and as it now
+        # stands, so the fix doesn't come back next pass as new work.
+        if $hunkEdited {
+          let fixed = (editedHunks $root $h $rebase $known
+            | get keys
+            | flatten
+            | where { |k| not ($k in $queued) })
+
+          recordReviewed $db $root $h.file $fixed
+
+          if ($fixed | is-not-empty) {
+            print $"  ✓ reviewed, along with the edited version of the hunk"
+          }
+        }
+
+        $reviewed = $reviewed + 1
+        break
+      } else if $answer == "d" {
+        $deferred = ($deferred | append $h)
+        break
+      } else {
+        $quit = true
+        break
+      }
     }
   }
 
-  # Fold the comment edits back into HEAD and let the user reword the message.
-  if $amend {
-    for f in ($comments | get file | uniq) {
+  print ""
+  # Quitting leaves both the hunk on screen and the ones after it unanswered, so
+  # they count together rather than as hunks nobody looked at.
+  print $"($reviewed) reviewed, ($deferred | length) deferred, ($total - $reviewed - ($deferred | length)) left."
+
+  for d in $deferred {
+    print $"  deferred: ($d.file):($d.line)"
+  }
+
+  # Fold the edits back into HEAD and let the user reword the message. A pass
+  # that changed nothing has nothing to amend, so it doesn't open the message
+  # editor just to close it again.
+  if $amend and ($edited | is-not-empty) {
+    for f in ($edited | uniq) {
       git -C $root add -- $f
     }
     git -C $root commit --amend
   }
+
+  # Under `review branch` this runs from a rebase, one commit at a time, and each
+  # run that exits cleanly lets the rebase roll on to the next commit. Quitting
+  # means quitting the branch too, so it fails on purpose to stop the sequencer
+  # where it stands -- git then explains how to resume or abandon it.
+  if $quit and (rebaseInProgress $root) {
+    print "Quit, so the rebase is paused on this commit."
+    exit 1
+  }
 }
 
-# Collect {file, line} for every added comment line in a staged diff produced
-# with `git diff --cached --unified=0`. Tracks block-comment state (e.g.
-# Haskell `{- -}`, C `/* */`, HTML `<!-- -->`) so interior lines that don't
-# begin with a marker are still recognized as comments.
-def parseStagedComments [diff: string] {
+# Forget what has been recorded about the files under the current directory, so
+# they come up for review from scratch. Run at the top of a repository it clears
+# the whole repository; run in a subdirectory it clears only what is under that
+# subdirectory. Worktrees are their own repository as far as this goes, so
+# forgetting one says nothing about the others or about the main checkout.
+def "main review forget" [] {
+  let root = (git rev-parse --show-toplevel | str trim)
+  let here = ($env.PWD | path expand)
+  let db = (reviewDb)
+  let rows = (open $db | query db "SELECT hash, file FROM reviewed WHERE repo = ?" -p [$root])
+  # At the top of the repository every file is under here, and `path relative-to`
+  # would give "." rather than a prefix to match on.
+  let doomed = (if $here == $root {
+    $rows
+  } else {
+    let prefix = $"($here | path relative-to $root)/"
+
+    $rows | where { |r| $r.file | str starts-with $prefix }
+  })
+
+  if ($doomed | is-empty) {
+    print $"Nothing is recorded for the files under (tildify $here)."
+    return
+  }
+
+  let files = ($doomed | get file | uniq)
+
+  print $"($doomed | length) reviewed line\(s\) across ($files | length) file\(s\) under (tildify $here)."
+  print "  Forgetting them means reviewing those changes again from scratch."
+
+  if (promptChoice ["y" "n"] "  Forget them? [y/n]: ") != "y" {
+    print "  left alone"
+    return
+  }
+
+  forgetFiles $db $root $files
+  print $"  ✓ forgot ($doomed | length) reviewed line\(s\)"
+}
+
+# Review a whole branch commit by commit, in the order the commits were written:
+# rebase onto the point where the branch left the mainline and stop after each
+# commit to run `review --amend` on it, so a fix lands in the commit that
+# introduced the line rather than in a follow-up at the tip. This is the
+# interactive rebase you would write by hand -- `edit` on every commit, review,
+# `git rebase --continue` -- with the continuing done for you.
+#
+# Commits reviewed without edits keep their hashes. From the first commit that is
+# actually amended onward, hashes change, since every commit after it is rebuilt
+# on the new parent. Reviewed hunks are keyed by content, so that rewriting
+# doesn't make already-reviewed hunks look new again.
+#
+# Quitting a commit's review leaves the rebase paused there: pick it back up with
+# `git rebase --continue`, or put the branch back with `git rebase --abort`.
+def "main review branch" [
+  --base: string  # review commits after this ref instead of after the mainline merge base
+] {
+  let root = (git rev-parse --show-toplevel | str trim)
+
+  if (rebaseInProgress $root) {
+    error make {msg: "A rebase is already in progress; finish it with `git rebase --continue` or drop it with `git rebase --abort` first"}
+  }
+
+  # A rebase won't start over modified tracked files, and reviewing a commit means
+  # editing files, so both want a clean tree to begin with. Untracked files don't
+  # bother either, so they don't bother this.
+  if (trackedChanges $root) {
+    error make {msg: "There are staged or unstaged changes; commit or stash them before reviewing the branch"}
+  }
+
+  let start = (if $base == null {
+    branchRoot $root
+  } else if (refExists $root $base) {
+    $base
+  } else {
+    error make {msg: $"'($base)' is not a ref in this repository"}
+  })
+
+  let commits = (git -C $root rev-list --reverse $"($start)..HEAD" | lines | where { |c| $c | is-not-empty })
+
+  if ($commits | is-empty) {
+    print $"No commits between (shortSha $root $start) and HEAD to review."
+    return
+  }
+
+  print $"($commits | length) commit\(s\) on top of (shortSha $root $start):"
+  for c in $commits {
+    print $"  (commitSummary $root $c)"
+  }
+  print ""
+
+  # `--exec` is the whole trick: it appends the review to the todo after every
+  # pick, so each commit is reviewed on its way past and the sequencer carries on
+  # by itself unless the review fails.
+  try {
+    ^git -C $root rebase --exec $"'(reviewScript)' review --amend" $start
+  } catch {
+    print ""
+    print "The rebase stopped early. `git rebase --continue` picks it up from there, `git rebase --abort` puts the branch back as it was."
+    return
+  }
+
+  print $"Reviewed ($commits | length) commit\(s\)."
+}
+
+# This script's own path, so a rebase runs the same copy that started it rather
+# than whichever `dev` happens to be on PATH.
+def reviewScript [] {
+  $env.CURRENT_FILE? | default "dev"
+}
+
+# Where the branch parted from the mainline.
+def branchRoot [repo: string] {
+  let base = (baseRef $repo)
+
+  if $base == null {
+    error make {msg: "Found no mainline ref (origin/main, origin/master, main, master) to measure the branch against; name a starting point with --base"}
+  }
+
+  let result = (do { ^git -C $repo merge-base HEAD $base } | complete)
+
+  if $result.exit_code != 0 {
+    error make {msg: $"HEAD and ($base) have no commit in common; name a starting point with --base"}
+  }
+
+  $result.stdout | str trim
+}
+
+# The commit being amended, plus how far along the rebase is when there is one.
+def printCommit [repo: string] {
+  let subject = (gitLine $repo ["show" "--no-patch" "--format=%h %s" "HEAD"])
+  let author = (gitLine $repo ["show" "--no-patch" "--format=%an, %ar" "HEAD"])
+  let stat = (gitLine $repo ["show" "--shortstat" "--format=" "HEAD"] | str trim)
+  let at = (rebasePosition $repo)
+  let heading = (if $at == null { "Commit" } else { $"Commit ($at)" })
+
+  # A merge commit reports no shortstat at all, so the separator goes with it.
+  let changes = (if ($stat | is-empty) { "" } else { $" — ($stat)" })
+
+  print ""
+  print $"(ansi attr_bold)($heading)  ($subject)(ansi reset)"
+  print $"  ($author)($changes)"
+}
+
+def commitSummary [repo: string, commit: string] {
+  gitLine $repo ["show" "--no-patch" "--format=%h %s" $commit]
+}
+
+# The last non-empty line of a git command's output, or "" if it said nothing.
+# Written for the one-line `show --format=` reads above, where a merge commit or a
+# missing ref means no output rather than an error worth reporting.
+def gitLine [repo: string, args: list<string>] {
+  let result = (do { ^git -C $repo ...$args } | complete)
+  let lines = ($result.stdout | lines | where { |l| $l | is-not-empty })
+
+  if ($result.exit_code != 0) or ($lines | is-empty) { "" } else { $lines | last }
+}
+
+# The state directory of a rebase in progress: rebase-merge for the sequencer,
+# rebase-apply for the older patch-based one.
+def rebaseDir [repo: string] {
+  let result = (do { ^git -C $repo rev-parse --absolute-git-dir } | complete)
+
+  if $result.exit_code != 0 {
+    return null
+  }
+
+  let gitDir = ($result.stdout | str trim)
+
+  ["rebase-merge" "rebase-apply"]
+    | each { |d| $gitDir | path join $d }
+    | where { |p| $p | path exists }
+    | get 0?
+}
+
+def rebaseInProgress [repo: string] {
+  (rebaseDir $repo) != null
+}
+
+# How far along the rebase is, as "2/3", counted in commits rather than in todo
+# entries: `review branch` puts an exec after every pick, so git's own msgnum
+# would say 4/6 where the reviewer can see they are on the second commit of three.
+def rebasePosition [repo: string] {
+  let dir = (rebaseDir $repo)
+
+  if $dir == null {
+    return null
+  }
+
+  let done = (todoCommits ($dir | path join "done"))
+  let left = (todoCommits ($dir | path join "git-rebase-todo"))
+
+  if $done == 0 { null } else { $"($done)/($done + $left)" }
+}
+
+# Entries in a rebase todo that produce a commit of their own, in either the long
+# or the one-letter spelling. Fixups and squashes fold into the commit before
+# them, so they are not commits of the branch and are not counted as such.
+def todoCommits [path: string] {
+  if not ($path | path exists) {
+    return 0
+  }
+
+  open $path
+    | lines
+    | where { |l| ($l | str trim | split row " " | first) in ["pick" "p" "edit" "e" "reword" "r"] }
+    | length
+}
+
+# Modified tracked files, staged or not.
+def trackedChanges [repo: string] {
+  let unstaged = ((do { ^git -C $repo diff --quiet } | complete).exit_code != 0)
+  let staged = ((do { ^git -C $repo diff --cached --quiet } | complete).exit_code != 0)
+
+  $unstaged or $staged
+}
+
+def shortSha [repo: string, ref: string] {
+  let result = (do { ^git -C $repo rev-parse --short $ref } | complete)
+
+  if $result.exit_code == 0 { $result.stdout | str trim } else { $ref }
+}
+
+# Collect every hunk of a unified diff as
+# {file, start, newLen, line, header, body, changed}. Deleted files are reported
+# under their `+++` path of /dev/null for the caller to skip.
+def parseHunks [diff: string] {
   mut results = []
   mut curFile = ""
-  mut syntax = (commentSyntaxFor "")
   mut newLine = 0
-  mut inBlock = false
-  mut closeSeq = ""
+  mut hunkStart = 0
+  # 0 means "no changed line seen in this hunk yet"; real anchors start at 1, and
+  # nushell won't let a mutable variable start out as null and then hold an int.
+  mut anchor = 0
+  mut header = ""
+  mut body = []
+  mut changed = []
+  mut inHunk = false
 
   for line in ($diff | lines) {
-    if ($line | str starts-with "+++ ") {
+    # Body lines carry a ' ', '+', '-' or '\' prefix, so a header only counts as
+    # a header while no hunk is open; otherwise a diff of a patch file would read
+    # its own contents as headers.
+    if (not $inHunk) and ($line | str starts-with "+++ ") {
       let p = ($line | str substring 4..)
-      let path = (if ($p | str starts-with "b/") { $p | str substring 2.. } else { $p })
-      $curFile = $path
-      $syntax = (commentSyntaxFor $path)
-      $inBlock = false
-      $closeSeq = ""
+      $curFile = (if ($p | str starts-with "b/") { $p | str substring 2.. } else { $p })
     } else if ($line | str starts-with "@@") {
+      if $inHunk {
+        $results = ($results | append (hunkRecord $curFile $hunkStart $anchor ($newLine - $hunkStart) $header $body $changed))
+      }
+
       let m = ($line | parse --regex '@@ -\d+(?:,\d+)? \+(?<start>\d+)')
-      if not ($m | is-empty) {
-        $newLine = ($m.0.start | into int)
+      if ($m | is-empty) {
+        $inHunk = false
+      } else {
+        $hunkStart = ($m.0.start | into int)
+        $newLine = $hunkStart
+        $anchor = 0
+        $header = $line
+        $body = []
+        $changed = []
+        $inHunk = true
       }
-      # Added lines within a hunk are contiguous; a block cannot span hunks.
-      $inBlock = false
-      $closeSeq = ""
-    } else if ($line | str starts-with "+++") {
-      # header safety net, no line consumed
-    } else if ($line | str starts-with "+") {
-      let content = ($line | str substring 1..)
-      let trimmed = ($content | str trim)
-      mut isCmt = false
-
-      if $inBlock {
-        $isCmt = true
-        if ($content | str contains $closeSeq) {
-          $inBlock = false
-          $closeSeq = ""
-        }
-      } else if ($trimmed | is-not-empty) and (not ($syntax.ignore | any { |p| $trimmed | str starts-with $p })) {
-        if ($syntax.line | any { |m| $trimmed | str starts-with $m }) {
-          $isCmt = true
-        } else {
-          let opens = ($syntax.blocks | where { |b| $trimmed | str starts-with $b.0 })
-          if ($opens | is-not-empty) {
-            $isCmt = true
-            let b = ($opens | first)
-            if not (($trimmed | str replace $b.0 "") | str contains $b.1) {
-              $inBlock = true
-              $closeSeq = $b.1
-            }
-          }
-        }
+    } else if $inHunk and ($line | str starts-with "diff --git ") {
+      # End of this file's hunks; the next `+++` names the file that follows.
+      $results = ($results | append (hunkRecord $curFile $hunkStart $anchor ($newLine - $hunkStart) $header $body $changed))
+      $inHunk = false
+    } else if $inHunk {
+      # Removed lines don't advance the new-file counter, so anchoring on the
+      # first change of either kind lands on the same line for a replacement.
+      if ($line | str starts-with "+") {
+        if $anchor == 0 { $anchor = $newLine }
+        $changed = ($changed | append $line)
+        $body = ($body | append $line)
+        $newLine = $newLine + 1
+      } else if ($line | str starts-with "-") {
+        if $anchor == 0 { $anchor = $newLine }
+        $changed = ($changed | append $line)
+        $body = ($body | append $line)
+      } else if ($line | str starts-with " ") {
+        $body = ($body | append $line)
+        $newLine = $newLine + 1
+      } else if ($line | str starts-with '\') {
+        $body = ($body | append $line)
       }
-
-      if $isCmt {
-        $results = ($results | append {file: $curFile, line: $newLine})
-      }
-      $newLine = $newLine + 1
     }
+  }
+
+  if $inHunk {
+    $results = ($results | append (hunkRecord $curFile $hunkStart $anchor ($newLine - $hunkStart) $header $body $changed))
   }
 
   $results
 }
 
-# Build a unified=0 diff for every untracked, non-ignored file by diffing each
-# against /dev/null, so the whole file reads as added lines. Paths are
-# repo-root relative to match `git diff` headers. Binary files produce a
-# "Binary files differ" line with no additions and are skipped naturally.
+# One hunk, with `start`/`newLen` giving the span it covers in the new file and
+# `line` anchoring at its first changed line rather than its header, so an editor
+# opens on the change instead of the leading context. A hunk that only deletes
+# lines anchors at the position the deleted lines used to occupy.
+def hunkRecord [file: string, start: int, anchor: int, newLen: int, header: string, body: list<string>, changed: list<string>] {
+  {
+    file: $file,
+    start: $start,
+    newLen: $newLen,
+    line: (if $anchor == 0 { $start } else { $anchor }),
+    header: $header,
+    body: $body,
+    changed: $changed,
+  }
+}
+
+# Give every hunk a `keys` list, one key per line the hunk adds or removes, in the
+# order those lines appear in it.
+#
+# A key is the repository, the file, the line exactly as the diff writes it
+# (leading + or - included, so adding a line and removing it are not the same
+# change), and which copy of that text this is within the file. No line numbers
+# and no context go in, so a change keeps its key when it slides up or down the
+# file or when the lines around it are rewritten -- which is the whole point,
+# since that is what an unstaged tree does all day.
+#
+# The copy number is what keeps twins apart. Two files' worth of identical
+# `+ foo` lines each get their own key, and within one file the second copy is a
+# different key from the first, so reviewing one leaves the other to be reviewed.
+# Read the state as "this file has had N copies of this exact line reviewed": add
+# a copy and exactly one hunk comes back, remove one and nothing does, which is
+# the behaviour that survives lines being shuffled around.
+def keyHunks [root: string] {
+  let hunks = $in
+
+  # One id per changed line, in diff order, which is what makes the copy numbering
+  # below deterministic.
+  let ids = ($hunks | each { |h| $h.changed | each { |text| lineId $root $h.file $text } } | flatten)
+
+  if ($ids | is-empty) {
+    return ($hunks | each { |h| $h | insert keys [] })
+  }
+
+  # The copy numbers without a closure per line, which on a branch of a few
+  # thousand changed lines is the difference between a fifth of a second and two
+  # seconds: sorting by id, ties in diff order, gathers each id's copies into one
+  # run; `uniq --count` measures those runs in that same order; so the copy numbers
+  # are just 0..count-1 for each run, laid end to end against the sorted lines.
+  let sorted = ($ids | enumerate | sort-by item index)
+  let ordinals = ($sorted | get item | uniq --count | each { |r| seq 0 ($r.count - 1) } | flatten)
+  let keys = ($sorted
+    | zip $ordinals
+    | each { |p| {at: $p.0.index, key: ($"($p.0.item)\u{0}($p.1)" | hash sha256)} }
+    | sort-by at
+    | get key)
+
+  # Hand the flat list of keys back out to the hunks the lines came from.
+  mut out = []
+  mut taken = 0
+
+  for h in $hunks {
+    let mine = ($h.changed | length)
+
+    $out = ($out | append ($h | insert keys ($keys | skip $taken | first $mine)))
+    $taken = $taken + $mine
+  }
+
+  $out
+}
+
+# The identity of one changed line before its copy number is added. The scheme
+# name leads so that a later change to what goes into a key cannot be mistaken for
+# a key written under this one.
+def lineId [root: string, file: string, text: string] {
+  $"line/1\u{0}($root)\u{0}($file)\u{0}($text)" | hash sha256
+}
+
+# Show a hunk as it reads after being edited, which may be as two hunks if the
+# edit split it, or as nothing at all if the edit undid the change.
+def showEdited [root: string, hunk: record, rebase: list<string>, label: string, known: list<string>] {
+  let now = (editedHunks $root $hunk $rebase $known)
+
+  if ($now | is-empty) {
+    print "  ✎ nothing of this change is left in the file"
+  } else {
+    for n in $now { showHunk $n $"($label)  \(edited\)" }
+  }
+}
+
+# Print the hunk the way git colors its own diff. Anything taller than the
+# terminal is scrolled in `less` instead, so a long hunk doesn't scroll its own
+# header out of view.
+#
+# `less -X` is the point of running it by hand rather than honouring $PAGER: with
+# the alternate screen left alone, quitting the pager leaves the hunk on screen
+# to answer the prompt against, rather than wiping it. -F skips the pager for a
+# hunk that turns out to fit after all, and -R keeps the colors.
+def showHunk [hunk: record, label: string] {
+  let text = ([$"(ansi attr_bold)($label)(ansi reset)" $"(ansi cyan)($hunk.header)(ansi reset)"]
+    | append (colorBody $hunk)
+    | str join "\n")
+  # A redirected stdout reports no rows at all; nothing is scrolling away there,
+  # so print rather than reaching for a pager.
+  let rows = (term size | get rows)
+
+  print ""
+
+  if $rows > 0 and ((($hunk.body | length) + 4) > $rows) {
+    try {
+      $text | ^less -RFX
+    } catch {
+      print $text
+    }
+
+    # Leaving the alternate screen alone also leaves less's own ":" prompt on the
+    # last line, which the next prompt would otherwise be typed onto.
+    print ""
+  } else {
+    print $text
+  }
+}
+
+# The hunk's body, colored like git's diff except for the changed lines already
+# answered for in an earlier pass: those keep their + or - in green or red and dim
+# only the text after it, so the shape of the diff still reads at a glance while
+# the lines that are new to this pass are the ones that carry color.
+#
+# Changed lines carry a flag each in `seen`, in the order they appear, so walking
+# the body and taking the next flag at every + or - line pairs them back up.
+def colorBody [hunk: record] {
+  mut out = []
+  mut next = 0
+
+  for line in $hunk.body {
+    if ($line | str starts-with "+") or ($line | str starts-with "-") {
+      let seen = ($hunk.seen | get -o $next | default false)
+      let color = (if ($line | str starts-with "+") { ansi green } else { ansi red })
+      $next = $next + 1
+
+      $out = ($out | append (if $seen {
+        $"($color)($line | str substring 0..0)(ansi reset)(ansi dark_gray)($line | str substring 1..)(ansi reset)"
+      } else {
+        $"($color)($line)(ansi reset)"
+      }))
+    } else {
+      $out = ($out | append $line)
+    }
+  }
+
+  $out
+}
+
+# Where reviewed lines are remembered. `into sqlite` is the only way to create the
+# file from nushell and it takes the schema from the rows it is given, so the table
+# is seeded with one row and then emptied.
+def reviewDb [] {
+  let db = ($env.HOME | path join ".local" "state" "dev" "review.db")
+
+  if not ($db | path exists) {
+    mkdir ($db | path dirname)
+    [[hash repo file reviewed_at]; ["" "" "" ""]] | into sqlite $db -t reviewed
+    open $db | query db "DELETE FROM reviewed" | ignore
+  }
+
+  # What makes `INSERT OR REPLACE` replace: a table built by `into sqlite` has no
+  # constraint of its own. Databases written before keys went per-line hold rows
+  # under the old scheme, which no key can match now, so a duplicate is possible
+  # there and the index is not worth failing over.
+  try {
+    open $db | query db "CREATE UNIQUE INDEX IF NOT EXISTS reviewed_hash ON reviewed(hash)" | ignore
+  }
+
+  $db
+}
+
+# Only this repository's keys: a key already carries the repository it belongs to,
+# so the rest could never match, and leaving them out keeps the join below smaller.
+def reviewedKeys [db: string, repo: string] {
+  open $db | query db "SELECT DISTINCT hash FROM reviewed WHERE repo = ?" -p [$repo] | get hash
+}
+
+# Tag each hunk with which of its changed lines have been reviewed before: `seen`
+# holds a flag per line, in step with `keys`, and `newCount` how many are new.
+#
+# This is one hash join over every changed line rather than a lookup per line. The
+# obvious `$key in $known` written per line is a linear scan of the whole record
+# each time -- on a branch of a few thousand changed lines against a few thousand
+# recorded ones that is tens of millions of comparisons, and several seconds of
+# staring at nothing before the first hunk appears.
+def markSeen [known: list<string>] {
+  let hunks = $in
+
+  if ($known | is-empty) {
+    return ($hunks | each { |h|
+      $h | insert seen ($h.keys | each { false }) | insert newCount ($h.keys | length)
+    })
+  }
+
+  # Kept to whole-table operations rather than a closure per line: `wrap` and
+  # `enumerate` build the table, `join` matches it against the record in one pass,
+  # and `default` fills in the lines that matched nothing. `join` makes no promise
+  # about the order it returns rows in, so they are put back in line order before
+  # the flags are read off them.
+  let flags = ($hunks
+    | get keys
+    | flatten
+    | enumerate
+    | rename at key
+    | join --left ($known | wrap key | insert seen true) key
+    | sort-by at
+    | default false seen
+    | get seen)
+
+  mut out = []
+  mut taken = 0
+
+  for h in $hunks {
+    let mine = ($h.keys | length)
+    let seen = ($flags | skip $taken | first $mine)
+
+    $out = ($out | append ($h | insert seen $seen | insert newCount ($seen | where { |s| not $s } | length)))
+    $taken = $taken + $mine
+  }
+
+  $out
+}
+
+# Record every line of a reviewed hunk in one statement, since a hunk can easily
+# be forty lines and a round trip each would be felt. Reviewing a line again
+# replaces its row rather than adding one, so `reviewed_at` reads as the last time
+# it was looked at.
+def recordReviewed [db: string, root: string, file: string, keys: list<string>] {
+  if ($keys | is-empty) {
+    return
+  }
+
+  let values = ($keys | each { "(?, ?, ?, datetime())" } | str join ", ")
+  let params = ($keys | each { |k| [$k, $root, $file] } | flatten)
+
+  open $db
+    | query db $"INSERT OR REPLACE INTO reviewed \(hash, repo, file, reviewed_at) VALUES ($values)" -p $params
+    | ignore
+}
+
+# Delete the recorded lines for particular files of one repository, in batches so
+# that a repository with thousands of them stays inside sqlite's limit on how many
+# parameters one statement may carry.
+def forgetFiles [db: string, repo: string, files: list<string>] {
+  for batch in ($files | chunks 400) {
+    let holes = ($batch | each { "?" } | str join ", ")
+
+    open $db
+      | query db $"DELETE FROM reviewed WHERE repo = ? AND file IN \(($holes))" -p ([$repo] | append $batch)
+      | ignore
+  }
+}
+
+# Forget everything recorded for the repository at a path and for any repository
+# underneath it, and answer how many lines that was. Written for paths that are
+# being deleted: a removed worktree, or a whole story directory.
+def forgetReviewsUnder [db: string, path: string] {
+  let repos = (open $db
+    | query db "SELECT DISTINCT repo FROM reviewed"
+    | get repo
+    | where { |r| ($r == $path) or ($r | str starts-with $"($path)/") })
+
+  mut removed = 0
+
+  for repo in $repos {
+    $removed = $removed + (open $db | query db "SELECT count(*) as n FROM reviewed WHERE repo = ?" -p [$repo] | get 0.n)
+    open $db | query db "DELETE FROM reviewed WHERE repo = ?" -p [$repo] | ignore
+  }
+
+  $removed
+}
+
+# The same, for a worktree that has just been unregistered, reported in the same
+# indented style as the rest of the cleanup it belongs to.
+def forgetWorktreeReviews [db: string, path: string] {
+  let removed = (forgetReviewsUnder $db $path)
+
+  if $removed > 0 {
+    print $"    ✓ forgot ($removed) reviewed line\(s\)"
+  }
+}
+
+# A hunk as it stands after being edited. Fixing a line changes its key, so the
+# keys held for the hunk as it was shown say nothing about the fix -- re-read the
+# file and take whichever hunks now cover the span this one occupied. More than one
+# comes back when the edit split the hunk in two; none comes back when the edit
+# undid the change entirely. `rebase` is the mode's idea of what to diff the
+# working tree against.
+def editedHunks [root: string, hunk: record, rebase: list<string>, known: list<string>] {
+  let diff = (do { ^git -C $root diff --no-color ...$rebase $hunk.file } | complete | get stdout)
+  let from = $hunk.start
+  # A hunk that only deletes lines covers no new-file lines at all, so its span
+  # collapses to the single line the deletion sits between.
+  let to = ([$from ($hunk.start + $hunk.newLen - 1)] | math max)
+
+  parseHunks $diff
+    | where file == $hunk.file
+    | keyHunks $root
+    | markSeen $known
+    | where { |c| ($c.start <= $to) and (([$c.start ($c.start + $c.newLen - 1)] | math max) >= $from) }
+}
+
+# Build a diff for every untracked, non-ignored file by diffing each against
+# /dev/null, so the whole file reads as one added hunk. Paths are repo-root
+# relative to match `git diff` headers. Binary files produce a "Binary files
+# differ" line with no hunks and are skipped naturally.
 def untrackedDiff [root: string] {
   let files = (git -C $root ls-files --others --exclude-standard | lines | where { |f| $f | is-not-empty })
   $files
     | each { |f|
-        do { ^git -C $root diff --no-index --unified=0 --no-color -- /dev/null $f } | complete | get stdout
+        do { ^git -C $root diff --no-index --no-color -- /dev/null $f } | complete | get stdout
       }
     | str join ""
 }
 
-# Collapse runs of adjacent comment lines (same file, consecutive line
-# numbers) into a single {file, line} anchored at the run's first line.
-def groupConsecutive [] {
-  let rows = $in
-  mut groups = []
-  mut curFile = ""
-  mut startLine = 0
-  mut prevLine = 0
-
-  for r in $rows {
-    if ($r.file == $curFile) and ($r.line == ($prevLine + 1)) {
-      $prevLine = $r.line
-    } else {
-      if $curFile != "" {
-        $groups = ($groups | append {file: $curFile, line: $startLine})
-      }
-      $curFile = $r.file
-      $startLine = $r.line
-      $prevLine = $r.line
-    }
-  }
-
-  if $curFile != "" {
-    $groups = ($groups | append {file: $curFile, line: $startLine})
-  }
-
-  $groups
-}
-
-# Comment syntax keyed off the file extension: `line` leaders, `blocks` as
-# [open, close] pairs, and `ignore` prefixes that look like comment openers but
-# aren't (e.g. Haskell `{-#` pragmas).
-def commentSyntaxFor [path: string] {
-  let ext = ($path | path parse | get extension | str downcase)
-  match $ext {
-    "hs" => { line: ["--"], blocks: [["{-" "-}"]], ignore: ["{-#"] }
-    "elm" | "purs" => { line: ["--"], blocks: [["{-" "-}"]], ignore: [] }
-    "sql" | "lua" => { line: ["--"], blocks: [], ignore: [] }
-    "js" | "jsx" | "ts" | "tsx" | "mjs" | "cjs" | "go" | "rs" | "c" | "h" | "cpp" | "hpp" | "cc" | "java" | "scala" | "kt" | "kts" | "swift" | "php" | "cs" | "dart" | "zig" | "proto" => { line: ["//"], blocks: [["/*" "*/"]], ignore: [] }
-    "py" | "rb" | "sh" | "bash" | "zsh" | "fish" | "nu" | "yaml" | "yml" | "toml" | "cfg" | "ini" | "r" | "pl" | "pm" | "tf" => { line: ["#"], blocks: [], ignore: [] }
-    "css" | "scss" | "less" => { line: [], blocks: [["/*" "*/"]], ignore: [] }
-    "html" | "htm" | "xml" | "vue" | "svelte" | "md" => { line: [], blocks: [["<!--" "-->"]], ignore: [] }
-    "clj" | "cljs" | "el" | "lisp" | "scm" | "rkt" => { line: [";"], blocks: [], ignore: [] }
-    "vim" => { line: ['"'], blocks: [], ignore: [] }
-    _ => { line: ["#" "//" "--" ";"], blocks: [["/*" "*/"] ["{-" "-}"] ["<!--" "-->"]], ignore: ["{-#"] }
-  }
-}
-
-# Open $EDITOR at a specific line, using each editor's own jump syntax.
-def editCommentAt [file: string, line: int] {
+# Open $EDITOR at a specific line, using each editor's own jump syntax. A hunk
+# that deletes the tail of a file can anchor past its last line, and a file
+# deleted outright anchors at 0, so the line is clamped into real numbering.
+def editFileAt [file: string, anchor: int] {
+  let line = ([$anchor 1] | math max)
   let editor = ($env.EDITOR? | default "vi")
   let base = ($editor | path basename)
   match $base {

@@ -64,6 +64,23 @@ def "main story branch" [story: string, branch:string ...projects: string] {
   }
 }
 
+# Open a tab for every story directory under ~/work/stories, so a session can be
+# put back together after a zellij restart without naming each story in turn.
+# Stories already on screen are jumped to rather than opened a second time, which
+# falls out of `o` doing that itself; focus ends up on the last story opened.
+def "main story open-all" [] {
+  let stories = (storyDirs)
+
+  if ($stories | is-empty) {
+    print "No story directories under ~/work/stories."
+    return
+  }
+
+  for story in $stories {
+    main o $story
+  }
+}
+
 # Interactively clean up everything a story leaves behind: the worktrees each
 # project registered under ~/work/stories/<story>, every local or remote branch
 # named for the story, whatever `dev review` recorded against those worktrees, and
@@ -250,6 +267,13 @@ def workRepos [] {
   glob $"($env.HOME)/work/*/*" --no-file --no-symlink
     | where { |repo| not ($repo | str starts-with $"($env.HOME)/work/stories/") }
     | where { |repo| ($repo | path join ".git" | path exists) and (($repo | path join ".git" | path type) == "dir") }
+}
+
+# Every story directory, in name order. Only directories count -- notes and
+# spreadsheets dropped in alongside them are not stories -- and symlinks are left
+# out to match workRepos.
+def storyDirs [] {
+  glob $"($env.HOME)/work/stories/*" --no-file --no-symlink | sort
 }
 
 # Every registered worktree, across every project in ~/work, that lives inside

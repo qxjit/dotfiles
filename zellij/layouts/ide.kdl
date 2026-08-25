@@ -5,7 +5,7 @@ layout {
     pane split_direction="vertical" {
         pane command="fish"
         pane stacked=true {
-            pane command="hx"
+            pane command="remax"
             pane command="dev" {
                 args "file-tree"
             }

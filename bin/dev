@@ -568,7 +568,7 @@ def deleteRemoteBranch [repo: string, remote: string, name: string] {
 
 def promptChoice [choices: list<string>, prompt: string] {
   loop {
-    let answer = (input $prompt | str trim | str downcase)
+    let answer = (input $prompt | str trim | str lowercase)
 
     if $answer in $choices {
       return $answer

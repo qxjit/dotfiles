@@ -3,7 +3,7 @@ layout {
         plugin location="zellij:tab-bar"
     }
     pane split_direction="vertical" {
-        pane command="fish"
+        pane command="nu"
         pane stacked=true {
             pane command="remax"
             pane command="dev" {

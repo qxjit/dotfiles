@@ -7,6 +7,16 @@
 # `set fish_greeting` with no value.
 $env.config.show_banner = false
 
+let carapace_completer = {|spans|
+    carapace $spans.0 nushell ...$spans | from json
+}
+
+$env.config.completions = {
+  external: {
+    enable: true
+    completer: $carapace_completer
+  }
+}
 
 # ---------------------------------------------------------------- prompt ------
 

@@ -2,6 +2,14 @@
 
 set -e
 
+mkdir -p ~/.local/bin
+curl -L \
+  https://github.com/carapace-sh/carapace-bin/releases/download/v1.7.3/carapace-bin_1.7.3_linux_amd64.tar.gz \
+  -o ~/.local/bin/carapace.tar.gz
+tar xfz ~/.local/bin/carapace.tar.gz -C ~/.local/bin
+rm ~/.local/bin/carapace.tar.gz
+chmod 755 ~/.local/bin/carapace
+
 curl -fsSL https://apt.fury.io/nushell/gpg.key | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/fury-nushell.gpg
 echo "deb https://apt.fury.io/nushell/ /" | sudo tee /etc/apt/sources.list.d/fury.list
 sudo apt update

@@ -60,7 +60,11 @@ def "main story branch" [story: string, branch:string ...projects: string] {
     git config $"branch.($branch).remote" origin
     git config $"branch.($branch).merge" $"refs/heads/($branch)"
 
-    ./scripts/bootstrap
+    if ("./scripts/bootstrap" | path exists) {
+      ./scripts/bootstrap
+    } else {
+      print $"Skipping bootstrap in ($project). No script exists."
+    }
   }
 }
 

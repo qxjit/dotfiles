@@ -1512,7 +1512,7 @@ def forgetWorktreeReviews [db: string, path: string] {
 # `remax -C` enters the directory to work out which repository it is being asked
 # about, and by this point the directory is gone.
 def forgetRemax [path: string] {
-  let result = (do { "y\n" | ^remax -C $path forget } | complete)
+  let result = (do { "y\n" | ^remax forget $path } | complete)
 
   if $result.exit_code != 0 {
     return null

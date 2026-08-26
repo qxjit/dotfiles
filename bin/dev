@@ -277,6 +277,7 @@ def "main story cleanup" [story: string] {
         # Review state is keyed by the worktree's own path, so once the worktree
         # is gone those rows can never match a hunk again.
         forgetWorktreeReviews $db $wt.path
+        forgetWorktreeRemax $wt.path
 
         if $answer == "y" and $wt.branch != null {
           if (deleteBranch $wt.repo $wt.branch) {
@@ -379,6 +380,14 @@ def "main story cleanup" [story: string] {
 
       if $orphaned > 0 {
         print $"  ✓ forgot ($orphaned) reviewed line\(s\) recorded under it"
+      }
+
+      let orphanedRemax = (forgetRemax $storyDir)
+
+      if $orphanedRemax == null {
+        print $"  ! remax could not be asked about what it recorded under it"
+      } else if $orphanedRemax > 0 {
+        print $"  ✓ forgot ($orphanedRemax) remax verdict\(s\) recorded under it"
       }
     }
   }
@@ -1485,6 +1494,46 @@ def forgetWorktreeReviews [db: string, path: string] {
 
   if $removed > 0 {
     print $"    ✓ forgot ($removed) reviewed line\(s\)"
+  }
+}
+
+# What remax recorded about a path, thrown away the way forgetReviewsUnder throws
+# away `dev review`'s record of it. remax keeps its verdicts in a database of its
+# own, spread over three tables, and the skill shipped alongside it says not to
+# write there directly -- so this goes through `remax forget` rather than reaching
+# into the tables.
+#
+# That command asks before deleting anything. The answer is supplied here because
+# `story cleanup` has already asked about this worktree, and a second prompt would
+# only re-litigate the decision just made.
+#
+# Answers the number of verdicts forgotten, or null when remax could not be asked
+# at all -- which today includes the case this is called in most often, since
+# `remax -C` enters the directory to work out which repository it is being asked
+# about, and by this point the directory is gone.
+def forgetRemax [path: string] {
+  let result = (do { "y\n" | ^remax -C $path forget } | complete)
+
+  if $result.exit_code != 0 {
+    return null
+  }
+
+  # "  ✓ forgot 3 line verdict(s)" when there was something to forget, and a line
+  # saying nothing is recorded when there was not.
+  let reported = ($result.stdout | parse --regex 'forgot (?<n>\d+) line verdict')
+
+  if ($reported | is-empty) { 0 } else { $reported.0.n | into int }
+}
+
+# The same, for a worktree that has just been unregistered, in the indented style
+# of the cleanup it belongs to.
+def forgetWorktreeRemax [path: string] {
+  let forgotten = (forgetRemax $path)
+
+  if $forgotten == null {
+    print $"    ! remax could not be asked about what it recorded here"
+  } else if $forgotten > 0 {
+    print $"    ✓ forgot ($forgotten) remax verdict\(s\)"
   }
 }
 

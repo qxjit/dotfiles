@@ -43,28 +43,148 @@ def "main o" [project: string] {
 def "main story branch" [story: string, branch:string ...projects: string] {
   let storyDir = $"($env.HOME)/work/stories/($story)"
   mkdir $storyDir
-  $projects | each { |project|
-    let resolved = resolveProject $project
-    let projectStoryDir = $"($storyDir)/($project)" 
 
-    cd $resolved.dir
-    git fetch
-    git worktree add $projectStoryDir -b $branch origin/main
+  for project in $projects {
+    addStoryProject $storyDir $branch $project
+  }
+}
 
-    cd $projectStoryDir
+# Add projects to the story the working directory is already in, so that neither
+# the story nor the branch has to be named again. Each project gets exactly what
+# `story branch` gives it: a worktree cut from origin/main, tracking a branch of
+# its own name, bootstrapped.
+#
+# The branch is the first of these to answer: --branch, the branch of the
+# worktree the working directory is in, or the single branch shared by every
+# worktree in the story. A story routinely carries more than one line of work --
+# multiple branches related to the story -- so standing in the worktree whose
+# branch is wanted is what settles it, and a story directory whose worktrees
+# disagree says so rather than picking one.
+def "main story add" [
+  ...projects: string  # project names, as `dev o` takes them
+  --branch: string     # cut the worktrees for this branch instead of an inferred one
+] {
+  if ($projects | is-empty) {
+    error make {msg: "Name at least one project to add"}
+  }
 
-    # Point the branch at origin/<branch> rather than the origin/main it was cut
-    # from, so a plain `git push` publishes it under its own name. Written as
-    # config because --set-upstream-to requires the remote branch to already
-    # exist; until the first push, `git status` will show the upstream as gone.
-    git config $"branch.($branch).remote" origin
-    git config $"branch.($branch).merge" $"refs/heads/($branch)"
+  let storyDir = (currentStoryDir)
 
-    if ("./scripts/bootstrap" | path exists) {
-      ./scripts/bootstrap
-    } else {
-      print $"Skipping bootstrap in ($project). No script exists."
+  if $storyDir == null {
+    error make {msg: $"(tildify ($env.PWD | path expand)) is not under ~/work/stories; cd into a story, or use `dev story branch`"}
+  }
+
+  let onBranch = if $branch != null { $branch } else { inferredStoryBranch $storyDir }
+
+  # Every name is resolved before anything is created, so a typo in the third
+  # project does not leave the first two built and the story half done.
+  for project in $projects { resolveProject $project | ignore }
+
+  print $"Adding to (tildify $storyDir) on ($onBranch):"
+
+  for project in $projects {
+    let dest = $"($storyDir)/($project)"
+
+    # `git worktree add` refuses a directory that already exists, but only after
+    # the fetch and only about the one it reached, which would strand the rest of
+    # the list. Saying so up front keeps the remaining projects worth attempting.
+    if ($dest | path exists) {
+      print $"  ($project) is already in this story, skipping"
+      continue
     }
+
+    print $"  ($project)"
+    addStoryProject $storyDir $onBranch $project
+  }
+}
+
+# The branch a project added to this story should be cut for when it was not
+# named outright.
+def inferredStoryBranch [storyDir: string] {
+  let here = (worktreeBranch ($env.PWD | path expand))
+
+  if $here != null {
+    return $here
+  }
+
+  let branches = (storyWorktreeBranches $storyDir)
+
+  if ($branches | is-empty) {
+    error make {msg: $"Found no worktree under (tildify $storyDir) to read a branch off; name one with --branch, or use `dev story branch`"}
+  }
+
+  if ($branches | length) > 1 {
+    error make {msg: $"The worktrees under (tildify $storyDir) are on ($branches | length) different branches \(($branches | str join ', ')); cd into the one you want, or name it with --branch"}
+  }
+
+  $branches | first
+}
+
+# The story directory the working directory is inside, or null when it is not
+# under a story at all. Only the first component below ~/work/stories counts, so
+# this answers the same standing in the story directory as standing deep inside
+# one of its worktrees. Standing in ~/work/stories itself is not being in a story.
+def currentStoryDir [] {
+  let root = $"($env.HOME)/work/stories"
+  let pwd = ($env.PWD | path expand)
+
+  if not ($pwd | str starts-with $"($root)/") {
+    return null
+  }
+
+  $"($root)/($pwd | path relative-to $root | path split | first)"
+}
+
+# Every distinct branch the worktrees directly under a story directory are on.
+# Only directories holding a .git are asked -- a story directory also collects
+# notes and screenshots, and `git -C` on one of those would walk up out of the
+# story looking for a repository to answer about.
+def storyWorktreeBranches [storyDir: string] {
+  glob $"($storyDir)/*" --no-file --no-symlink
+    | where { |dir| $dir | path join ".git" | path exists }
+    | each { |dir| worktreeBranch $dir }
+    | compact
+    | uniq
+    | sort
+}
+
+# The branch checked out at a path, or null when it is not inside a repository or
+# is sitting on a detached HEAD.
+def worktreeBranch [dir: string] {
+  let result = (do { ^git -C $dir rev-parse --abbrev-ref HEAD } | complete)
+
+  if $result.exit_code != 0 {
+    return null
+  }
+
+  let name = ($result.stdout | str trim)
+
+  if $name == "HEAD" { null } else { $name }
+}
+
+# One project's worktree under a story directory, which is the whole of what
+# `story branch` and `story add` do per project.
+def addStoryProject [storyDir: string, branch: string, project: string] {
+  let resolved = resolveProject $project
+  let projectStoryDir = $"($storyDir)/($project)"
+
+  cd $resolved.dir
+  git fetch
+  git worktree add $projectStoryDir -b $branch origin/main
+
+  cd $projectStoryDir
+
+  # Point the branch at origin/<branch> rather than the origin/main it was cut
+  # from, so a plain `git push` publishes it under its own name. Written as
+  # config because --set-upstream-to requires the remote branch to already
+  # exist; until the first push, `git status` will show the upstream as gone.
+  git config $"branch.($branch).remote" origin
+  git config $"branch.($branch).merge" $"refs/heads/($branch)"
+
+  if ("./scripts/bootstrap" | path exists) {
+    ./scripts/bootstrap
+  } else {
+    print $"Skipping bootstrap in ($project). No script exists."
   }
 }
 

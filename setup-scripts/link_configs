@@ -16,6 +16,9 @@ link () {
 
 mkdir -p "$HOME/.config"
 mkdir -p "$HOME/.config/fish"
+# Only config.nu is linked, not the whole directory: nushell writes env.nu and
+# history.txt in here too, and neither belongs in the repo.
+mkdir -p "$HOME/.config/nushell"
 
 link "$HOME/dotfiles/kitty" "$HOME/.config/kitty"
 link "$HOME/dotfiles/alacritty" "$HOME/.config/alacritty"
@@ -23,4 +26,5 @@ link "$HOME/dotfiles/zellij" "$HOME/.config/zellij"
 link "$HOME/dotfiles/helix" "$HOME/.config/helix"
 link "$HOME/dotfiles/tmux.conf" "$HOME/.tmux.conf"
 link "$HOME/dotfiles/config.fish" "$HOME/.config/fish/config.fish"
+link "$HOME/dotfiles/nushell/config.nu" "$HOME/.config/nushell/config.nu"
 

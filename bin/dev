@@ -1,16 +1,11 @@
 #!/usr/bin/env nu
 
-# Open a file in the helix pane on the same tab.
-# Finds helix by pane command rather than relying on layout position.
-def main [path: string] {
-  let tab = (zellij action current-tab-info --json | from json)
-  let panes = (zellij action list-panes --json | from json)
-  let hx_pane = ($panes | where is_plugin == false and tab_id == $tab.tab_id and terminal_command != null | where ($it.terminal_command | str starts-with "hx") | first)
-  let pane_id = $"terminal_($hx_pane.id)"
-
-  let escaped = ($path | str replace --all ' ' '\ ')
-  zellij action write-chars --pane-id $pane_id $":e ($escaped)"
-  zellij action write --pane-id $pane_id 13
+# Dev workflow helpers. Run a subcommand; see the list below.
+def main [] {
+  # This definition also carries the subcommands: nushell only dispatches
+  # `main <sub>` when a bare `main` exists, and without it every subcommand in
+  # this file silently does nothing and exits 0.
+  help main
 }
 
 # Spawn or attach to a zellij dev session
@@ -713,12 +708,6 @@ def promptChoice [choices: list<string>, prompt: string] {
 
 def tildify [path: string] {
   $path | str replace $env.HOME "~"
-}
-
-# Launch a file tree configured to operate in conjuction with the zellij layout
-def "main file-tree" [] {
-  $env.EDITOR = "dev"
-  exec bt
 }
 
 # Walk the change set one hunk at a time: show the hunk, then mark it reviewed,

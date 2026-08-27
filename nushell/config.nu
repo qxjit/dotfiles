@@ -129,6 +129,7 @@ if ($env.GHCUP_INSTALL_BASE_PREFIX? | is-empty) {
   $env.GHCUP_INSTALL_BASE_PREFIX = $env.HOME
 }
 
+$env.SSH_AUTH_SOCK = $"($env.XDG_RUNTIME_DIR)/ssh-agent.socket"
 
 # --------------------------------------------------------- editing mode -------
 

@@ -3,12 +3,10 @@ layout {
         plugin location="zellij:tab-bar"
     }
     pane split_direction="vertical" {
-        pane command="nu"
+        pane command="claude"
         pane stacked=true {
             pane command="remax"
-            pane command="dev" {
-                args "file-tree"
-            }
+            pane command="nu"
         }
     }
     pane size=2 borderless=true {

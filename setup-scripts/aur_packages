@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+
+set -e
+
+paru -S --needed \
+  carapace-bin \
+  beekeeper-studio-bin \
+  bt \
+  docker-rootless-extras

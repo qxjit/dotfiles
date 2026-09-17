@@ -28,6 +28,7 @@ set fish_user_paths \
 set -x XDG_DATA_DIRS "/home/qxjit/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:$XDG_DATA_DIRS"
 
 set -x DOCKER_HOST unix:///run/user/(id -u)/docker.sock
+set -x SSH_AUTH_SOCK $XDG_RUNTIME_DIR/ssh-agent.socket
 
 # Secret keys live outside this repo: ~/.keys holds one env-style file per
 # service. The values are parsed out rather than sourced, so a stray line in one

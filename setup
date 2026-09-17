@@ -7,23 +7,16 @@ if [ ! -d "$HOME/dotfiles" ]; then
   exit 1
 fi
 
-./setup-scripts/apt_packages
+./setup-scripts/pacman_packages
+./setup-scripts/paru
+./setup-scripts/aur_packages
 ./setup-scripts/pip_packages
 ./setup-scripts/configure_git
 ./setup-scripts/configure_flathub
 ./setup-scripts/flathub_packages
-./setup-scripts/apparmor # ubuntu 24.04.2
 ./setup-scripts/docker
-./setup-scripts/docker-compose
-./setup-scripts/rustup-init.sh
+./setup-scripts/tailscale
+./setup-scripts/ssh_agent
 ./setup-scripts/link_configs
 ./setup-scripts/vimstone
-./setup-scripts/zellij
-./setup-scripts/helix
-./setup-scripts/bt
-./setup-scripts/install_fonts
-./setup-scripts/upterm
-./setup-scripts/tailscale
-./setup-scripts/beekeeper-studio
-./setup-scripts/nushell
 ./setup-scripts/manual_reminders

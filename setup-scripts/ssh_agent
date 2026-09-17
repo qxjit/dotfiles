@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+set -e
+
+systemctl --user enable --now ssh-agent.service

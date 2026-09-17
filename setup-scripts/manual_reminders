@@ -1,10 +1,8 @@
 #!/usr/bin/env sh
 
-echo "Here are some urls for installations steps to manually perform"
+echo "These live in the AUR and are left to install by hand:"
 echo ""
-echo https://github.com/alacritty/alacritty/blob/master/INSTALL.md
-echo https://slack.com/downloads/linux
-echo https://support.zoom.us/hc/en-us/articles/204206269-Installing-or-updating-Zoom-on-Linux
-echo https://keybase.io/docs/the_app/install_linux
-echo https://www.dropbox.com/install-linux
-echo https://packagecloud.io/github/git-lfs/install
+echo "  paru -S slack-desktop"
+echo "  paru -S zoom"
+echo "  paru -S keybase-bin"
+echo "  paru -S dropbox"

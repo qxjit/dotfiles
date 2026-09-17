@@ -1,0 +1,39 @@
+#!/usr/bin/env sh
+
+set -e
+
+sudo pacman -Syu --needed \
+  base-devel \
+  git \
+  git-lfs \
+  github-cli \
+  fish \
+  nushell \
+  ripgrep \
+  jq \
+  libxml2 \
+  tmux \
+  zellij \
+  helix \
+  neovim \
+  nodejs \
+  npm \
+  python \
+  python-pip \
+  fzf \
+  xclip \
+  fuse3 \
+  fuse2 \
+  curl \
+  flatpak \
+  openssh \
+  htop \
+  kitty \
+  flameshot \
+  upterm \
+  tailscale \
+  docker \
+  docker-compose \
+  docker-buildx \
+  rootlesskit \
+  adobe-source-code-pro-fonts

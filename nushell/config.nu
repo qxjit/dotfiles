@@ -131,6 +131,22 @@ if ($env.GHCUP_INSTALL_BASE_PREFIX? | is-empty) {
 
 $env.SSH_AUTH_SOCK = $"($env.XDG_RUNTIME_DIR)/ssh-agent.socket"
 
+# The ~/.keys loader from config.fish: one env-style file per service, held
+# outside this repo. Nushell cannot assign to a computed variable name, so each
+# file's pairs are collected into one record and handed to `load-env`. Parsed
+# rather than sourced, for the same reason as in fish. `glob` on a missing or
+# empty directory answers an empty list, so this is a no-op until ~/.keys exists.
+for keyfile in (glob $"($env.HOME)/.keys/*" --no-dir) {
+  load-env (open --raw $keyfile
+    | lines
+    | parse --regex '^\s*(?:export\s+)?(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?<value>.*?)\s*$'
+    | reduce --fold {} { |row, acc|
+        $acc | insert $row.name ($row.value
+          | str replace --regex '^"(.*)"$' '$1'
+          | str replace --regex "^'(.*)'$" '$1')
+      })
+}
+
 # --------------------------------------------------------- editing mode -------
 
 $env.config.edit_mode = "helix"

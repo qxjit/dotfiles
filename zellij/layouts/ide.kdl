@@ -6,7 +6,7 @@ layout {
         pane command="claude"
         pane stacked=true {
             pane command="remax"
-            pane command="nu"
+            pane command="fish"
         }
     }
     pane size=2 borderless=true {

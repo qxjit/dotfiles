@@ -21,6 +21,17 @@ keybinds {
       bind "s" { GoToNextTab; }
       bind "c" { NewTab; }
     }
+
+    // Ctrl q ends the whole session with no confirmation and sits right among
+    // the chords used all day, so it is unbound. Quitting is a two-step
+    // instead: Ctrl o for session mode, then Shift Q. Detach is still Ctrl o
+    // then d.
+    shared_except "locked" {
+      unbind "Ctrl q"
+    }
+    session {
+      bind "Q" { Quit; }
+    }
 }
 
 

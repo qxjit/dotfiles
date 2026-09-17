@@ -29,4 +29,20 @@ set -x XDG_DATA_DIRS "/home/qxjit/.local/share/flatpak/exports/share:/var/lib/fl
 
 set -x DOCKER_HOST unix:///run/user/(id -u)/docker.sock
 
+# Secret keys live outside this repo: ~/.keys holds one env-style file per
+# service. The values are parsed out rather than sourced, so a stray line in one
+# of those files cannot run as fish code. A missing or empty ~/.keys expands to
+# nothing, so this is a no-op until the directory exists.
+for keyfile in $HOME/.keys/*
+  test -f $keyfile; or continue
+
+  while read -l line
+    if string match -qr '^\s*(?:export\s+)?(?<name>[A-Za-z_][A-Za-z0-9_]*)\s*=\s*(?<value>.*?)\s*$' -- $line
+      # One layer of matching quotes, the way a shell would have removed it.
+      set -l unquoted (string replace -r '^"(.*)"$' '$1' -- $value)
+      set -gx $name (string replace -r "^'(.*)'\$" '$1' -- $unquoted)
+    end
+  end < $keyfile
+end
+
 set -q GHCUP_INSTALL_BASE_PREFIX[1]; or set GHCUP_INSTALL_BASE_PREFIX $HOME ; set -gx PATH $HOME/.cabal/bin $PATH /home/qxjit/.ghcup/bin # ghcup-env

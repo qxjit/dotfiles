@@ -19,7 +19,9 @@ keybinds {
       bind "t" { MoveTab "Left"; }
       bind "n" { MoveTab "Right"; }
       bind "s" { GoToNextTab; }
-      bind "c" { NewTab; }
+      bind "c" { NewTab; SwitchToMode "Normal"; }
+      bind "x" { Run "dev" "tab" "close" { floating true; close_on_exit true; name "close tab"; width "60%"; height "5"; x "20%"; y "40%"; }; SwitchToMode "Normal"; }
+      bind "o" { Run "dev" "o" { floating true; close_on_exit true; name "open project"; width "60%"; height "5"; x "20%"; y "40%"; }; SwitchToMode "Normal"; }
     }
 
     // Ctrl q ends the whole session with no confirmation and sits right among

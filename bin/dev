@@ -19,19 +19,50 @@ def "main t" [
 }
 
 # Open go to a zellij tab for a specific project
-def "main o" [project: string] {
+def "main o" [
+  project?: string  # project name or directory, prompted for when omitted
+] {
   requireZellijSession
 
-  let tabs = zellij action query-tab-names
+  if $project != null {
+    openProjectTab (resolveTarget $project)
+    return
+  }
 
-  # Only using directory target if the project argument looks like a path.
-  # Otherwise try to resolve it as a bare project name and only fall back
-  # to directory if that is unsuccessful
-  let resolved = if (looksLikePath $project) {
+  let typed = (input "Open project: " | str trim)
+
+  let resolved = (if ($typed | is-empty) {
+    null
+  } else {
+    try {
+      resolveTarget $typed
+    } catch { |err|
+      print $err.msg
+      input "Press enter to close" | ignore
+      null
+    }
+  })
+
+  zellij action hide-floating-panes
+
+  if $resolved != null {
+    openProjectTab $resolved
+  }
+}
+
+# Only using directory target if the project argument looks like a path.
+# Otherwise try to resolve it as a bare project name and only fall back
+# to directory if that is unsuccessful
+def resolveTarget [project: string] {
+  if (looksLikePath $project) {
     directoryTarget $project
   } else {
     try { resolveProject $project } catch { directoryTarget $project }
   }
+}
+
+def openProjectTab [resolved: record] {
+  let tabs = zellij action query-tab-names
 
   if ($tabs | lines | any { |it| $it == $resolved.name }) {
     zellij action go-to-tab-name $resolved.name
@@ -41,6 +72,29 @@ def "main o" [project: string] {
   }
 }
 
+# Close the focused zellij tab once its name has been typed back
+def "main tab close" [] {
+  requireZellijSession
+
+  let typed = (input "Type the name of this tab to close it, or press enter to keep it: " | str trim)
+
+  if ($typed | is-empty) {
+    zellij action hide-floating-panes
+    return
+  }
+
+  let focused = (zellij action dump-layout | parse --regex 'tab name="(?<name>[^"]*)" focus=true')
+
+  if ($focused | is-empty) {
+    error make {msg: "Could not find the focused tab"}
+  }
+
+  if $typed == $focused.0.name {
+    zellij action close-tab
+  } else {
+    zellij action hide-floating-panes
+  }
+}
 
 # Stop unless this shell is inside a zellij session, naming what is running when
 # it is not. `zellij action` picks its target out of $env.ZELLIJ_SESSION_NAME, so

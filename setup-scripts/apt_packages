@@ -24,5 +24,6 @@ sudo apt install \
   htop \
   kitty \
   libfuse2 \
-  flameshot
+  flameshot \
+  unzip
 

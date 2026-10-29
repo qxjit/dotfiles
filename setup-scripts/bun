@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+set -e
+
+BUN_VERSION=1.4.3
+
+BUN_URL="https://github.com/oven-sh/bun/releases/download/bun-v$BUN_VERSION/bun-linux-x64.zip"
+BUN_BIN="$HOME/.bun/bin"
+
+mkdir -p "$BUN_BIN"
+archive=$(mktemp)
+curl -L "$BUN_URL" -o "$archive"
+unzip -p "$archive" bun-linux-x64/bun > "$BUN_BIN/bun"
+rm "$archive"
+
+chmod 755 "$BUN_BIN/bun"
+ln -sf "$BUN_BIN/bun" "$BUN_BIN/bunx"

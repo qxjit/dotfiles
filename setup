@@ -23,6 +23,7 @@ fi
 ./setup-scripts/bt
 ./setup-scripts/install_fonts
 ./setup-scripts/upterm
+./setup-scripts/bun
 ./setup-scripts/tailscale
 ./setup-scripts/beekeeper-studio
 ./setup-scripts/nushell

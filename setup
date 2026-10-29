@@ -14,6 +14,7 @@ fi
 ./setup-scripts/flathub_packages
 ./setup-scripts/apparmor # ubuntu 24.04.2
 ./setup-scripts/docker
+./setup-scripts/docker-config
 ./setup-scripts/docker-compose
 ./setup-scripts/rustup-init.sh
 ./setup-scripts/link_configs

@@ -2,5 +2,5 @@
 exec \
   upterm host \
   --server ssh://upterm.flipstone.com:38215 \
-  --force-command 'dev t' \
-  -- dev t
+  --force-command 'qmux attach' \
+  -- qmux attach

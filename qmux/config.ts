@@ -3,13 +3,16 @@ export default {
   env: {
      EDITOR: "hx",
      SSH_AUTH_SOCK: `${process.env.XDG_RUNTIME_DIR ?? "/run/user/1000"}/keyring/ssh`,
+     QUOLL_DIR: `${process.env.HOME}/Documents/flipstone-shared/qxjit/notebook`,
   },
-  untrackedCommands: ["claude", "remax", "hx", "q-space", "qmux"],
+  untrackedCommands: ["claude", "remax", "hx", "q-space", "qmux", "quoll"],
   agentJobs: ["scripts/up", "scripts/nu-up", "scripts/build"],
   projects: {
-    roots: ["~/work/*/*"],
+    roots: ["~/work/*/*","~/dotfiles"],
     layout: "ide",
-    layoutFor: { },
+    layoutFor: {
+      dotfiles: "dotfiles"
+    },
   },
   tabs: {
     "*": { layout: "q-space", cwd: "~/work" },
@@ -17,14 +20,24 @@ export default {
   startup: ["*"],
   layouts: {
     ide: {
-      jobs: [{ name: "claude", command: ["qmux", "claude"], dock: true }],
+      jobs: [{ name: "claude", command: ["qmux", "claude", "--mode", "auto"], dock: true }],
+      drawer: { height: 20 },
       row: [
+        { command: ["quoll"] },
         { command: ["remax"], focus: true },
-        {},
+      ],
+    },
+    dotfiles: {
+      jobs: [{ name: "claude", command: ["qmux", "claude", "--mode", "auto"], dock: true }],
+      drawer: { height: 20 },
+      row: [
+        { },
+        { command: ["remax"], focus: true },
       ],
     },
     "q-space": {
       jobs: [{ name: "server", command: ["q-space", "serve"] }],
+      drawer: { height: 20 },
       row: [
         { command: ["q-space", "pane", "stories" ], focus: true },
         { column: [

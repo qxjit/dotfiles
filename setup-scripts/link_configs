@@ -22,7 +22,7 @@ mkdir -p "$HOME/.config/nushell"
 
 link "$HOME/dotfiles/kitty" "$HOME/.config/kitty"
 link "$HOME/dotfiles/alacritty" "$HOME/.config/alacritty"
-link "$HOME/dotfiles/zellij" "$HOME/.config/zellij"
+link "$HOME/dotfiles/qmux" "$HOME/.config/qmux"
 link "$HOME/dotfiles/helix" "$HOME/.config/helix"
 link "$HOME/dotfiles/tmux.conf" "$HOME/.tmux.conf"
 link "$HOME/dotfiles/config.fish" "$HOME/.config/fish/config.fish"

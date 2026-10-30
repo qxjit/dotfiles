@@ -1,0 +1,15 @@
+#!/usr/bin/env sh
+
+set -e
+
+SRC="$HOME/dotfiles/docker/daemon.json"
+DST="$HOME/.config/docker/daemon.json"
+
+mkdir -p "$HOME/.config/docker"
+
+if [ -e "$DST" ]; then
+  echo "$DST already exists, not overwriting. If you want the one from dotfiles, move the old one out of the way and re-run setup"
+else
+  echo "Copying $SRC -> $DST"
+  cp "$SRC" "$DST"
+fi

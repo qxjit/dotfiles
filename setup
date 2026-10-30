@@ -15,6 +15,8 @@ fi
 ./setup-scripts/configure_flathub
 ./setup-scripts/flathub_packages
 ./setup-scripts/docker
+./setup-scripts/docker-config
+./setup-scripts/bun
 ./setup-scripts/tailscale
 ./setup-scripts/ssh_agent
 ./setup-scripts/link_configs

@@ -35,6 +35,15 @@ export default {
         { command: ["remax"], focus: true },
       ],
     },
+    "pr-review": {
+      args: ["pr"],
+      name: "{project} #{pr}",
+      jobs: [{ name: "claude", command: ["qmux", "claude", "--mode", "auto"], dock: true }],
+      drawer: { height: 20 },
+      row: [
+        { command: ["remax", "--pr", "{pr}"], focus: true },
+      ],
+    },
     "q-space": {
       jobs: [{ name: "server", command: ["q-space", "serve"] }],
       drawer: { height: 20 },

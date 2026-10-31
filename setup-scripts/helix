@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+set -e
+
+mkdir -p ~/.local/bin
+ln -sf /usr/bin/helix ~/.local/bin/hx

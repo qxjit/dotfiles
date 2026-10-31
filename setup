@@ -26,5 +26,6 @@ fi
 ./setup-scripts/tailscale
 ./setup-scripts/ssh_agent
 ./setup-scripts/link_configs
+./setup-scripts/helix
 # ./setup-scripts/vimstone
 ./setup-scripts/manual_reminders

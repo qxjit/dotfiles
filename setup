@@ -12,11 +12,17 @@ fi
 ./setup-scripts/aur_packages
 ./setup-scripts/pip_packages
 ./setup-scripts/configure_git
+./setup-scripts/ssh_key
 ./setup-scripts/configure_flathub
 ./setup-scripts/flathub_packages
 ./setup-scripts/docker
 ./setup-scripts/docker-config
+./setup-scripts/haskell
 ./setup-scripts/bun
+./setup-scripts/claude
+./setup-scripts/qmux
+./setup-scripts/quoll
+./setup-scripts/remax
 ./setup-scripts/tailscale
 ./setup-scripts/ssh_agent
 ./setup-scripts/link_configs

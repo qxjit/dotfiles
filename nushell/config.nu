@@ -97,7 +97,6 @@ $env.PATH = (
   $env.PATH
   | prepend [
       $"($env.HOME)/.local/bin"
-      $"($env.HOME)/.cargo/bin"
       $"($env.HOME)/.python/bin"
       $"($env.HOME)/dotfiles/bin"
       $"($env.HOME)/bin"

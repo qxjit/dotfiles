@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+set -e
+
+"$HOME/dotfiles/setup-scripts/claude-install.sh"

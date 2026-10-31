@@ -4,6 +4,9 @@ set -e
 
 sudo pacman -Syu --needed \
   base-devel \
+  gmp \
+  libffi \
+  ncurses \
   git \
   git-lfs \
   github-cli \

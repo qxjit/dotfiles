@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+
+set -e
+
+SRC="$HOME/work/ptyparty/remax"
+CABAL="$HOME/.ghcup/bin/cabal"
+
+if [ ! -d "$SRC" ]; then
+  mkdir -p "$HOME/work/ptyparty"
+  git clone git@github.com:ptyparty/remax.git "$SRC"
+fi
+
+cd "$SRC"
+"$CABAL" update
+"$CABAL" build exe:remax
+
+mkdir -p "$HOME/.local/bin"
+ln -sfn "$("$CABAL" list-bin exe:remax)" "$HOME/.local/bin/remax"
+
+mkdir -p "$HOME/.claude/skills"
+ln -sfn "$SRC/skills/remax-review" "$HOME/.claude/skills/remax-review"

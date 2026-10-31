@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+
+set -e
+
+SRC="$HOME/work/ptyparty/qmux"
+BUN="$HOME/.bun/bin/bun"
+CLAUDE="$HOME/.local/bin/claude"
+
+if [ ! -d "$SRC" ]; then
+  mkdir -p "$HOME/work/ptyparty"
+  git clone git@github.com:ptyparty/qmux.git "$SRC"
+fi
+
+cd "$SRC"
+"$BUN" install
+"$BUN" link
+
+mkdir -p "$HOME/.claude/skills"
+ln -sfn "$SRC/skills/qmux-ask" "$HOME/.claude/skills/qmux-ask"
+
+if ! "$CLAUDE" mcp get qmux > /dev/null 2>&1; then
+  "$CLAUDE" mcp add --scope user qmux -- "$BUN" "$HOME/.bun/bin/qmux" mcp
+fi
+
+"$BUN" "$HOME/.bun/bin/qmux" hooks --install

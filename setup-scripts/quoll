@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+
+set -e
+
+SRC="$HOME/work/ptyparty/quoll"
+BUN="$HOME/.bun/bin/bun"
+
+if [ ! -d "$SRC" ]; then
+  mkdir -p "$HOME/work/ptyparty"
+  git clone git@github.com:ptyparty/quoll.git "$SRC"
+fi
+
+cd "$SRC"
+"$BUN" install
+"$BUN" link
+
+mkdir -p "$HOME/.claude/skills"
+ln -sfn "$SRC/skills/quoll" "$HOME/.claude/skills/quoll"

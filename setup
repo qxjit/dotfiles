@@ -10,13 +10,14 @@ fi
 ./setup-scripts/apt_packages
 ./setup-scripts/pip_packages
 ./setup-scripts/configure_git
+./setup-scripts/ssh_key
 ./setup-scripts/configure_flathub
 ./setup-scripts/flathub_packages
 ./setup-scripts/apparmor # ubuntu 24.04.2
 ./setup-scripts/docker
 ./setup-scripts/docker-config
 ./setup-scripts/docker-compose
-./setup-scripts/rustup-init.sh
+./setup-scripts/haskell
 ./setup-scripts/link_configs
 ./setup-scripts/vimstone
 ./setup-scripts/helix
@@ -24,6 +25,10 @@ fi
 ./setup-scripts/install_fonts
 ./setup-scripts/upterm
 ./setup-scripts/bun
+./setup-scripts/claude
+./setup-scripts/qmux
+./setup-scripts/quoll
+./setup-scripts/remax
 ./setup-scripts/tailscale
 ./setup-scripts/beekeeper-studio
 ./setup-scripts/nushell

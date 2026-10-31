@@ -4,11 +4,12 @@ export default {
      EDITOR: "hx",
      SSH_AUTH_SOCK: `${process.env.XDG_RUNTIME_DIR ?? "/run/user/1000"}/keyring/ssh`,
      QUOLL_DIR: `${process.env.HOME}/Documents/flipstone-shared/qxjit/notebook`,
+     QUOLL_COMMENT_COMMAND: "qmux claude compose --from-stdin --label",
   },
   untrackedCommands: ["claude", "remax", "hx", "q-space", "qmux", "quoll"],
   agentJobs: ["scripts/up", "scripts/nu-up", "scripts/build"],
   projects: {
-    roots: ["~/work/*/*","~/dotfiles"],
+    roots: ["~/work/*/*","~/work/ptyparty","~/dotfiles"],
     layout: "ide",
     layoutFor: {
       dotfiles: "dotfiles"

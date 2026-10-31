@@ -23,7 +23,7 @@ export default {
       jobs: [{ name: "claude", command: ["qmux", "claude", "--mode", "auto"], dock: true }],
       drawer: { height: 20 },
       row: [
-        { command: ["quoll"] },
+        { command: ["quoll", "--focus"] },
         { command: ["remax"], focus: true },
       ],
     },

@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+
+set -e
+
+SRC="$HOME/work/ptyparty/komux"
+BUN="$HOME/.bun/bin/bun"
+CLAUDE="$HOME/.local/bin/claude"
+
+if [ ! -d "$SRC" ]; then
+  mkdir -p "$HOME/work/ptyparty"
+  git clone git@github.com:ptyparty/komux.git "$SRC"
+fi
+
+cd "$SRC"
+"$BUN" install
+"$BUN" link
+
+if ! "$CLAUDE" mcp get komux > /dev/null 2>&1; then
+  "$CLAUDE" mcp add --scope user komux -- "$BUN" "$HOME/.bun/bin/komux" mcp
+fi
+
+"$BUN" "$HOME/.bun/bin/komux" setup --yes

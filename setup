@@ -20,7 +20,7 @@ fi
 ./setup-scripts/haskell
 ./setup-scripts/bun
 ./setup-scripts/claude
-./setup-scripts/qmux
+./setup-scripts/komux
 ./setup-scripts/quoll
 ./setup-scripts/remax
 ./setup-scripts/tailscale

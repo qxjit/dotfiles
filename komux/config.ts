@@ -1,14 +1,18 @@
+import ponpoko from "./plugins/ponpoko.ts";
 export default {
   defaultCwd: "~/work",
+  plugins: [ponpoko()],
   env: {
      EDITOR: "hx",
      SSH_AUTH_SOCK: `${process.env.XDG_RUNTIME_DIR ?? "/run/user/1000"}/ssh-agent.socket`,
      QUOLL_DIR: [
        `${process.env.HOME}/work/exfresso/engineering-log/stories`,
+       `${process.env.HOME}/work/exfresso/engineering-log/epics`,
        `${process.env.HOME}/work/exfresso/engineering-log/repos`,
        `${process.env.HOME}/work/qxjit/engineering-log`,
      ].join(":"),
      QUOLL_COMMENT_COMMAND: "komux claude compose --from-stdin --label",
+     PONPOKO_CLAUDE: "komux claude --mode auto",
   },
   untrackedCommands: ["claude", "remax", "hx", "q-space", "komux", "quoll"],
   agentJobs: ["scripts/up", "scripts/nu-up", "scripts/build"],
@@ -25,7 +29,18 @@ export default {
   startup: ["*"],
   layouts: {
     ide: {
+      labels: { strand: "{project}" },
       jobs: [{ name: "claude", command: ["komux", "claude", "--mode", "auto"], dock: true }],
+      drawer: { height: 20 },
+      row: [
+        { command: ["quoll", "--focus"] },
+        { command: ["remax"], focus: true },
+      ],
+    },
+    "story-start": {
+      args: ["prompt"],
+      labels: { strand: "{project}" },
+      jobs: [{ name: "claude", command: ["komux", "claude", "--mode", "auto", "--prompt", "{prompt}"], dock: true }],
       drawer: { height: 20 },
       row: [
         { command: ["quoll", "--focus"] },
@@ -41,7 +56,8 @@ export default {
       ],
     },
     "pr-review": {
-      args: ["pr"],
+      args: ["pr", "strand"],
+      labels: { strand: "{strand}" },
       name: "{project} #{pr}",
       jobs: [{ name: "claude", command: ["komux", "claude", "--mode", "auto"], dock: true }],
       drawer: { height: 20 },

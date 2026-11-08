@@ -21,6 +21,7 @@ fi
 ./setup-scripts/bun
 ./setup-scripts/claude
 ./setup-scripts/komux
+./setup-scripts/ponpoko
 ./setup-scripts/quoll
 ./setup-scripts/remax
 ./setup-scripts/tailscale

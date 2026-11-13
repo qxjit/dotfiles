@@ -20,7 +20,13 @@ export default {
     roots: ["~/work/*/*","~/work/ptyparty","~/dotfiles"],
     layout: "ide",
     layoutFor: {
-      dotfiles: "dotfiles"
+      dotfiles: "dotfiles",
+      ptyparty: "ptyparty",
+      komux: "ptyparty",
+      quoll: "ptyparty",
+      remax: "ptyparty",
+      ponpoko: "ptyparty",
+      kowari: "ptyparty",
     },
   },
   tabs: {
@@ -34,6 +40,15 @@ export default {
       drawer: { height: 20 },
       row: [
         { command: ["quoll", "--focus"] },
+        { command: ["remax"], focus: true },
+      ],
+    },
+    ptyparty: {
+      labels: { strand: "{project}" },
+      jobs: [{ name: "claude", command: ["komux", "claude", "--mode", "auto"], dock: true }],
+      drawer: { height: 20 },
+      row: [
+        { command: ["quoll", `${process.env.HOME}/work/ptyparty/notes`] },
         { command: ["remax"], focus: true },
       ],
     },

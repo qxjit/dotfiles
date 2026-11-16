@@ -15,7 +15,7 @@ export default {
      PONPOKO_CLAUDE: "komux claude --mode auto",
   },
   untrackedCommands: ["claude", "remax", "hx", "q-space", "komux", "quoll"],
-  agentJobs: ["scripts/up", "scripts/nu-up", "scripts/build"],
+  agentJobs: [{ command: "scripts/up", longLived: true }, { command: "scripts/nu-up", longLived: true }, "scripts/build"],
   projects: {
     roots: ["~/work/*/*","~/work/ptyparty","~/dotfiles"],
     layout: "ide",
